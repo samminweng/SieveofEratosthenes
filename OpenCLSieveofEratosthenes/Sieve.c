@@ -62,13 +62,13 @@ cl_int deﬁne_platform(cl_device_type device, GraphicCard card){
 /*
 Load the computing program from a source file and create the kernel.
 */
-int Load_program(const char* filename, int isVerbose)
+int Load_program(KernelType kerneltype, int isVerbose)
 {
 	FILE* fp;
 	FILE *ptx;
 	size_t fileSize;
 	char *buffer;
-
+	char* filename;
 	errno_t fp_err;
 	int count;
 	cl_int err;
@@ -76,6 +76,16 @@ int Load_program(const char* filename, int isVerbose)
 	size_t sizes;
 	int i;
 	char* log;
+
+	if(kerneltype == ConstantArray){
+		filename = "Kernel_constantArray.cl";
+	}else if(kerneltype == SharedArray){
+		filename = "Kernel_sharedArray.cl";
+	}else{
+		filename = "Kernel_ulong.cl";
+	}
+
+
 
 	// get size of kernel source
 	if ((fp_err = fopen_s(&fp, filename, "r")) != 0){
@@ -99,7 +109,6 @@ int Load_program(const char* filename, int isVerbose)
 	fclose(fp);
 
 	// Create the compute program from the source buffer
-
 	program = clCreateProgramWithSource(context, 1, (const char **)& buffer, (const size_t *)&fileSize, &err);
 	//program = clCreateProgramWithSource(context, 1, (const char **) & kernelSourceCode, NULL, &err);
 	if (program == 0) {
@@ -110,32 +119,25 @@ int Load_program(const char* filename, int isVerbose)
 
 	// Build the program executable	
 	//err = clBuildProgram(program, 0, NULL, "-cl-nv-maxrregcount=24 -cl-nv-verbose", NULL, NULL);
-	err = clBuildProgram(program, 1, &device_id, "-Werror -cl-std=CL1.1 -cl-nv-verbose", NULL, NULL);
+	err = clBuildProgram(program, 1, &device_id, "-cl-nv-verbose", NULL, NULL);
 	// check build error and build status first
 	clGetProgramBuildInfo(program, device_id, CL_PROGRAM_BUILD_STATUS, sizeof(cl_build_status), &status, NULL);
-	if (isVerbose==1) {
-		//Get the list of binary sizes
-		for (i=0;i<(int)num_devices;++i) {
-			//sizes = (size_t*)malloc(num_devices*sizeof(size_t));
-			clGetProgramBuildInfo(program, device_id, CL_PROGRAM_BUILD_LOG, 0, NULL, &sizes);
+	if (isVerbose==1 || status != CL_SUCCESS) {
+		clGetProgramBuildInfo(program, device_id, CL_PROGRAM_BUILD_LOG, 0, NULL, &sizes);
 
-			//Get the binaries
-			//binaries = new unsigned char*[num_devices];
-			log = (char*) calloc (sizes+1, sizeof(char));
-			clGetProgramBuildInfo(program, device_id, CL_PROGRAM_BUILD_LOG, sizes, log, NULL);
-			log[sizes]='\0';
-			if ((err = fopen_s(&ptx, "ptxcode.txt", "w")) != 0)
-			{
-				printf("Failed to open the file:ptxcode.txt\n");
-				return;
-			}
-			fprintf(ptx,"%s", log);
-			fclose(ptx);
-			free(log);
-			//free(sizes);
+		log = (char*) calloc (sizes+1, sizeof(char));
+		clGetProgramBuildInfo(program, device_id, CL_PROGRAM_BUILD_LOG, sizes, log, NULL);
+		log[sizes]='\0';
+		if ((err = fopen_s(&ptx, "ptxcode.txt", "w")) != 0)
+		{
+			printf("Failed to open the file:ptxcode.txt\n");
+			return;
 		}
+		fprintf(ptx,"%s", log);
+		fclose(ptx);
+		free(log);
+		exit(0);
 	}
-
 
 
 	// Create the compute kernel in the program we wish to run
@@ -321,7 +323,7 @@ int Sieve_OpenCL(int max, int block_size, int workgroupSize, MemeoryMode memMode
 
 
 /*Create a CSV file and write all the benchmarks to this file.*/
-void writeBenchmarksToCSV(double diff[], int size, long long max, int workgroupSize, int block_size){
+void writeBenchmarksToCSV(double diff[], int size, int max, int workgroupSize, int block_size, KernelType kerneltype){
 
 	cl_uint numberOfCores;			  // the number of cores of on a device
 	cl_long amountOfMemory;			  // the amount of memory on a device
@@ -334,13 +336,24 @@ void writeBenchmarksToCSV(double diff[], int size, long long max, int workgroupS
 	char value[MAXLENGTH];
 	int iter;	
 	FILE *file;
+	char *kerneltypeStr;
 	/*Opencl errors*/
 	cl_int err;
 	char str[MAXLENGTH];
 	char filename[MAXLENGTH] = "benchmark\\openclSieve";
 	//Make a directory.
 	err = system("mkdir benchmark");
-	sprintf_s(str, MAXLENGTH, ".Limit%d.Local%d.Block%d.Global%d", max, workgroupSize, block_size, global_size);
+
+	if(kerneltype==ConstantArray)
+		kerneltypeStr = "ConstantArray";
+	else if(kerneltype==SharedArray)
+		kerneltypeStr = "SharedArray";
+	else if(kerneltype==ULong)
+		kerneltypeStr = "ULong";
+
+
+
+	sprintf_s(str, MAXLENGTH, ".%s.Limit%d.WorkGroupSize%d.Block%d.Global%d", kerneltypeStr, max, workgroupSize, block_size, global_size);
 	strcat_s(filename, MAXLENGTH, str);
 	strcat_s(filename, MAXLENGTH, ".csv");
 

@@ -80,9 +80,11 @@
     <ClCompile Include="Sieve.c" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Kernel.cl">
+    <None Include="Kernel_ulong.cl">
       <DeploymentContent>true</DeploymentContent>
     </None>
+    <None Include="Kernel_constantArray.cl" />
+    <None Include="Kernel_sharedArray.cl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

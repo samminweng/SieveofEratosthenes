@@ -21,7 +21,8 @@
 
 typedef enum memoryMode { TRADITIONAL, PINNED } MemeoryMode; // the memory type
 typedef enum benchmarkMode { Global, MaxLimit, Limit } BenchmarkMode; // the memory type
-typedef enum graphicCard { Intel, NVIDIA, AMD} GraphicCard; // the memory type
+typedef enum graphicCard { Intel, NVIDIA, AMD} GraphicCard; // the graphic card
+typedef enum kernelType {ConstantArray, SharedArray, ULong} KernelType; // the kernel type 
 
 typedef struct {
 	int limit;
