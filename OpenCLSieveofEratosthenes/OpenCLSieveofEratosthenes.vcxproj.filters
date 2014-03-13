@@ -28,13 +28,16 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Kernel_sharedArray.cl">
-      <Filter>Source Files</Filter>
-    </None>
-    <None Include="Kernel_constantArray.cl">
-      <Filter>Source Files</Filter>
-    </None>
     <None Include="Kernel_ulong.cl">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="Kernel_charArray.cl">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="Kernel_sharedCharArray.cl">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="Kernel_sharedUlongArray.cl">
       <Filter>Source Files</Filter>
     </None>
   </ItemGroup>

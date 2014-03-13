@@ -18,6 +18,21 @@ cl_uint num_devices;			  // the number of devices
 char vendor[1024];				  // the platform vendor
 char deviceName[1024];			  // the devices name
 
+char* convertKernelTypeToString(KernelType kt){
+	char *name;
+	if(kt == CharArray){
+		name = "Kernel_charArray.cl";
+	}else if(kt == SharedCharArray){
+		name = "Kernel_sharedCharArray.cl";
+	}else if(kt == ULong) {
+		name = "Kernel_ulong.cl";
+	}else{
+		name = "Kernel_sharedUlongArray.cl";
+	}
+
+	return name; 
+}
+
 
 
 /*
@@ -36,7 +51,6 @@ cl_int deﬁne_platform(cl_device_type device, GraphicCard card){
 		err = clGetDeviceIDs(cpPlatform[0], device, 1, &device_id, &num_devices);
 	}
 	else if (device == CL_DEVICE_TYPE_GPU ){
-
 		if(card == AMD || card == NVIDIA){
 			//Get the platform info
 			clGetPlatformInfo(cpPlatform[1], CL_PLATFORM_VENDOR, sizeof(vendor), vendor, NULL);
@@ -46,8 +60,6 @@ cl_int deﬁne_platform(cl_device_type device, GraphicCard card){
 			clGetPlatformInfo(cpPlatform[0], CL_PLATFORM_VENDOR, sizeof(vendor), vendor, NULL);
 			err = clGetDeviceIDs(cpPlatform[0], device, 1, &device_id, &num_devices);
 		}
-
-
 	}
 
 
@@ -62,13 +74,14 @@ cl_int deﬁne_platform(cl_device_type device, GraphicCard card){
 /*
 Load the computing program from a source file and create the kernel.
 */
-int Load_program(KernelType kerneltype, int isVerbose)
+int Load_program(KernelType kt, int isVerbose)
 {
 	FILE* fp;
 	FILE *ptx;
 	size_t fileSize;
 	char *buffer;
-	char* filename;
+	char* name;
+	char *filename;
 	errno_t fp_err;
 	int count;
 	cl_int err;
@@ -77,16 +90,7 @@ int Load_program(KernelType kerneltype, int isVerbose)
 	int i;
 	char* log;
 
-	if(kerneltype == ConstantArray){
-		filename = "Kernel_constantArray.cl";
-	}else if(kerneltype == SharedArray){
-		filename = "Kernel_sharedArray.cl";
-	}else{
-		filename = "Kernel_ulong.cl";
-	}
-
-
-
+	filename = convertKernelTypeToString(kt);	
 	// get size of kernel source
 	if ((fp_err = fopen_s(&fp, filename, "r")) != 0){
 		printf("Failed to load the file:%s\n", *filename);
@@ -110,7 +114,6 @@ int Load_program(KernelType kerneltype, int isVerbose)
 
 	// Create the compute program from the source buffer
 	program = clCreateProgramWithSource(context, 1, (const char **)& buffer, (const size_t *)&fileSize, &err);
-	//program = clCreateProgramWithSource(context, 1, (const char **) & kernelSourceCode, NULL, &err);
 	if (program == 0) {
 		return err;
 	}
@@ -323,7 +326,7 @@ int Sieve_OpenCL(int max, int block_size, int workgroupSize, MemeoryMode memMode
 
 
 /*Create a CSV file and write all the benchmarks to this file.*/
-void writeBenchmarksToCSV(double diff[], int size, int max, int workgroupSize, int block_size, KernelType kerneltype){
+void writeBenchmarksToCSV(double diff[], int size, int max, int workgroupSize, int block_size, KernelType kt){
 
 	cl_uint numberOfCores;			  // the number of cores of on a device
 	cl_long amountOfMemory;			  // the amount of memory on a device
@@ -336,24 +339,16 @@ void writeBenchmarksToCSV(double diff[], int size, int max, int workgroupSize, i
 	char value[MAXLENGTH];
 	int iter;	
 	FILE *file;
-	char *kerneltypeStr;
+	char *kt_str;
 	/*Opencl errors*/
 	cl_int err;
 	char str[MAXLENGTH];
 	char filename[MAXLENGTH] = "benchmark\\openclSieve";
 	//Make a directory.
-	err = system("mkdir benchmark");
+	err = system("mkdir benchmark");	
+	kt_str = convertKernelTypeToString(kt);
 
-	if(kerneltype==ConstantArray)
-		kerneltypeStr = "ConstantArray";
-	else if(kerneltype==SharedArray)
-		kerneltypeStr = "SharedArray";
-	else if(kerneltype==ULong)
-		kerneltypeStr = "ULong";
-
-
-
-	sprintf_s(str, MAXLENGTH, ".%s.Limit%d.WorkGroupSize%d.Block%d.Global%d", kerneltypeStr, max, workgroupSize, block_size, global_size);
+	sprintf_s(str, MAXLENGTH, ".%s.Limit%d.WorkGroupSize%d.Block%d.Global%d", kt_str, max, workgroupSize, block_size, global_size);
 	strcat_s(filename, MAXLENGTH, str);
 	strcat_s(filename, MAXLENGTH, ".csv");
 

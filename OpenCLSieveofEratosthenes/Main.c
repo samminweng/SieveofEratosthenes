@@ -1,5 +1,5 @@
 ﻿#include "Header.h"
-#define MAXITERATION 20	  
+#define MAXITERATION 30	  
 #define WORKGROUPSIZE 64
 
 cl_int deﬁne_platform(cl_device_type deviceType, GraphicCard device);
@@ -103,12 +103,14 @@ int main(int argc, char *args[]){
 			if(strncmp(args[index-1], "verbose", 4) == 0)
 				isVerbose =1;
 
-			if(strncmp(args[index-1], "constantArray", 7) == 0)
-				kerneltype = ConstantArray;
-			if(strncmp(args[index-1], "sharedArray", 7) == 0)
-				kerneltype = SharedArray;
+			if(strncmp(args[index-1], "chararray", 7) == 0)
+				kerneltype = CharArray;
+			if(strncmp(args[index-1], "sharedarray", 7) == 0)
+				kerneltype = SharedCharArray;
 			if(strncmp(args[index-1], "ulong", 4) == 0)
 				kerneltype = ULong;
+			if(strncmp(args[index-1], "sharedulongarray", 7) == 0)
+				kerneltype = SharedULongArray;
 
 			if (strncmp(args[index-1], "Intel", 5) == 0)
 				device = Intel;

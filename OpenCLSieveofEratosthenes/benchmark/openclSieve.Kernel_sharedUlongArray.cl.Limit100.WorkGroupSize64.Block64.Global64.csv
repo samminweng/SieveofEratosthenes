@@ -1,0 +1,44 @@
+#Number of platforms:	2
+#Platform Vendor:	NVIDIA Corporation
+#Number of devices:	1
+#Name:	GeForce GT 720M
+#Vendor:	NVIDIA Corporation
+#Available:	Yes
+#Compute Units:	2
+#Clock Frequency:	1550 mHz
+#Global Memory:	1024 mb
+#Max Allocateable Memory:	256 mb
+#Local Memory:	49152 kb
+#Device Maximal Work-group Size:	 14757395255531668480
+#OpenCL C version:	 OpenCL C 1.1 
+Iteration	Time(milliseconds)
+1	833.000000
+2	844.000000
+3	836.000000
+4	816.000000
+5	829.000000
+6	740.000000
+7	808.000000
+8	825.000000
+9	812.000000
+10	817.000000
+11	817.000000
+12	815.000000
+13	836.000000
+14	813.000000
+15	822.000000
+16	817.000000
+17	808.000000
+18	820.000000
+19	809.000000
+20	830.000000
+21	819.000000
+22	827.000000
+23	827.000000
+24	801.000000
+25	836.000000
+26	816.000000
+27	830.000000
+28	1172.000000
+29	845.000000
+30	831.000000

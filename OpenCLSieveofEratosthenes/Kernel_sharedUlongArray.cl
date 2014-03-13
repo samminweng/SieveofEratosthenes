@@ -1,4 +1,5 @@
 #pragma cl_nv_compiler_options
+#define ARRAYSIZE 64
 //#pragma OPENCL EXTENSION cl_intel_printf : enable
 /*Count the number of 1 bits in an unsigned long integer.*/
 int bitCount(ulong n) {
@@ -17,11 +18,11 @@ __kernel void sieve(__global int *primes,
 					int numberOfBlocks,
 					int start_limit,
 					int end_limit){ 
-	int gid, lid, global_size, limit, index;
+	int gid, lid, global_size, limit, index, offset;
 	int block_start, block_end;
 	int m, p, i, subtotal, iter;
-	//Declare a shared 
-	ulong nonPrimes;
+	//Declare a shared
+	__local ulong nonPrimes[ARRAYSIZE];
 	//Get the global thread ID                                 
 	gid  = get_global_id(0);
 	lid = get_local_id(0);
@@ -33,9 +34,8 @@ __kernel void sieve(__global int *primes,
 	//if(gid < -1){	
 		//Get the global size.
 		block_start = (gid * block_size) + start_limit;		
-		block_end = min((gid+1)*block_size + start_limit, end_limit+1);		
-		//offset = block_start;
-		nonPrimes = 0L;
+		block_end = min((gid+1)*block_size + start_limit, end_limit+1);
+		nonPrimes[lid] = 0L;
 		//For each given prime number, mark its multiples in the sub-range.	
 		for(i=0; i<numberOfPrimes; i++){
 			p = primes[i];
@@ -47,14 +47,14 @@ __kernel void sieve(__global int *primes,
 			m = max(m, p*p);
 			//Mark the numbers with the prime.
 			while(m < block_end){
-				nonPrimes = nonPrimes | (1L<<(m-block_start));
-				//printf("lid:%d\tm:%d\tnonPrimeList:%ld\t bitCount:%d\n",lid,m,nonPrimeList, bitCount(nonPrimeList));
+				nonPrimes[lid] = nonPrimes[lid] | (1L<<(m-block_start));
+				//printf("lid:%d\tm:%d\tnonPrimes:%ld\t bitCount:%d\n",lid,m,nonPrimes[lid], bitCount(nonPrimes[lid]));
 				m = m + p;
 			}
 		}
 		
 		//Count the primes within the range.
-		subtotal = (block_end - block_start) - bitCount(nonPrimes);
+		subtotal = (block_end - block_start) - bitCount(nonPrimes[lid]);
 		if(block_start == 0){
 			subtotal -= 2;
 		}
