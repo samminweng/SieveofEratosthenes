@@ -10,6 +10,7 @@
 #include <math.h>/*Calculate the power of a number.*/
 #include <locale.h>/*Set the locale.*/
 #include <time.h>/*Get the current time.*/
+#include <windows.h>/*Set the environmental variable.*/
 #ifdef __APPLE__
 #include <OpenCL/opencl.h>
 #else
@@ -19,14 +20,29 @@
 #define SUCCESS 1
 #define NOT_SUCCESS -1
 
-typedef enum memoryMode { TRADITIONAL, PINNED } MemeoryMode; // the memory type
-typedef enum benchmarkMode { Global, MaxLimit, Limit } BenchmarkMode; // the memory type
-typedef enum graphicCard { Intel, NVIDIA, AMD} GraphicCard; // the graphic card
-typedef enum kernelType {CharArray, SharedCharArray, ULong, SharedULongArray} KernelType; // the kernel type 
+//Declare nested structures.
+typedef struct {	
+	//levels
+	int limit;
+	int workgroupsize;
+	int arraysize;
+	int result;
+	//Global Size
+	int global_size;
+
+} Parameters;
+
 
 typedef struct {
-	int limit;
-	int workgroupSize;
-	int block_size;
-	int numberOfPrimes;
+	//Benchmark Configuration
+	char* vendor;
+	cl_device_type device_type;
+	char* kernel_name;
+	
+	//Time
+	double* diff;
+	int repeats;
+	Parameters parameters;
 } Benchmark;
+
+

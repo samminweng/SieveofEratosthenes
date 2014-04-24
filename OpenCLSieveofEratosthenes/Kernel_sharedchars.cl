@@ -1,4 +1,4 @@
-#pragma cl_nv_compiler_options
+//#pragma cl_nv_compiler_options
 #define BLOCKSIZE 64
 #define ARRAYSIZE 64*64
 /*Use the shared one-D array to store the nonPrimes list.*/

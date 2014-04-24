@@ -1,4 +1,5 @@
 //#pragma cl_nv_compiler_options
+#define ARRAYSIZE 64
 //#pragma OPENCL EXTENSION cl_intel_printf : enable
 /*Count the number of 1 bits in an unsigned long integer.*/
 int bitCount(ulong n) {
@@ -10,25 +11,25 @@ int bitCount(ulong n) {
     return counter;
  }
 /*Use the ulong integer to store the nonPrimes list.*/
-__kernel void sieve(__global __read_only int *primes,
+__kernel void sieve(__global int *primes,
 					int numberOfPrimes,
-					__global __write_only short int *subtotals,
+					__global short int *subtotals,
 					int block_size,
 					int numberOfBlocks,
 					int start_limit,
 					int end_limit){ 
-	int gid;
-	int block_start, block_end;
+	int gid, lid, block_start, block_end;
 	int m, p, i, subtotal;
-	//Declare a private unsigned long integer, shared by all work-item of a work-group.
-	ulong nonPrimes;
+	//Declare a shared and local ararys.
+	__local ulong nonPrimes[ARRAYSIZE];
 	//Get the global thread ID                                 
-	gid  = get_global_id(0);
+	gid = get_global_id(0);
+	lid = get_local_id(0);
 	if(gid < numberOfBlocks){
 		//Get the block size, block start, and block end.
 		block_start = (gid * block_size) + start_limit;		
 		block_end = min((gid+1)*block_size + start_limit, end_limit+1);
-		nonPrimes = 0L;
+		nonPrimes[lid] = 0L;
 		//For each given prime number, mark its multiples in the sub-range.	
 		for(i=0; i<numberOfPrimes; i++){
 			p = primes[i];
@@ -40,18 +41,16 @@ __kernel void sieve(__global __read_only int *primes,
 			m = max(m, p*p);
 			//Mark the numbers with the prime.
 			while(m < block_end){
-				nonPrimes = nonPrimes | (1L<<(m-block_start));
-				//printf("lid:%d\tm:%d\tnonPrimeList:%ld\t bitCount:%d\n",lid,m,nonPrimeList, bitCount(nonPrimeList));
+				nonPrimes[lid] = nonPrimes[lid] | (1L<<(m-block_start));
+				//printf("lid:%d\tm:%d\tnonPrimes:%ld\t bitCount:%d\n",lid,m,nonPrimes[lid], bitCount(nonPrimes[lid]));
 				m = m + p;
 			}
 		}
 		
 		//Count the primes within the range.
-		subtotal = (block_end - block_start) - bitCount(nonPrimes);
-		//0 and 1 are not primes.
-		if(block_start == 0){
-			subtotal -= 2;
-		}
+		subtotal = (block_end - block_start) - bitCount(nonPrimes[lid]);
+		if(block_start == 0)
+			subtotal -= 2;		
 		subtotals[gid]=subtotal;
 	}
 	

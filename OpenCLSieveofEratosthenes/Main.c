@@ -1,173 +1,208 @@
 ﻿#include "Header.h"
-#define MAXITERATION 30	  
-#define WORKGROUPSIZE 64
+#define MAXITERATION 30
+#define VARNAME TEXT("CUDA_CACHE_DISABLE")//Set the environment variable.
 
-cl_int deﬁne_platform(cl_device_type deviceType, GraphicCard device);
-int Load_program(KernelType kerneltype, int isVerbose);
-int Sieve_OpenCL(int max, int block_size, int workgroupSize, MemeoryMode memMode);
-cl_int free_OpenCL();
-void writeBenchmarksToCSV(double diff[], int size, int max, int workgroupSize, int block_size, KernelType kerneltype);
+enum Vendor {AMD, Intel, NVIDIA};
+char* Vendor_Name[]={"Advanced Micro Devices, Inc.", "Intel(R) Corporation", ""}; 
+char* DS_Files[]={"Kernel_arrayOfchars.cl", "Kernel_sharedArrayOfChars.cl", "Kernel_SharedArrayOfULongs.cl", "Kernel_unsignedLong.cl"};
+char* ArraySize_Files[]={"Kernel_arrayOfChars_64.cl", "Kernel_arrayOfChars_128.cl", "Kernel_arrayOfChars_256.cl",
+	"Kernel_arrayOfChars_512.cl","Kernel_arrayOfChars_1024.cl","Kernel_arrayOfChars_2048.cl","Kernel_arrayOfChars_4096.cl"};
 
-//The number of primes.
+//The total number of primes associated with the range of upper limit.
 int results[] ={0, 4, 25, 168, 1229, 9592, 78498, 664579, 5761455, 50847534, 98222287};
-GraphicCard device = NVIDIA;
-BenchmarkMode benchmarkMode = Limit;
-MemeoryMode mode = TRADITIONAL;
-KernelType kerneltype = ULong;
-int isVerbose = 0;
-int numberOfBenchmarks;
+
+int deﬁne_platform(cl_device_type device_type, char* vendor_name);
+int Load_program(char* filename);
+int Sieve_OpenCL(int limit, int arraysize, int workgroupsize);
+int free_OpenCL();
+void writeBenchmarksToCSV(Benchmark benchmark);
+
+//The benchmark list.
 Benchmark *benchmarks;
 
-void generateBenchmark(BenchmarkMode mode){
-	int limit;
-	int res_index;
-	int block_size;	
-	int index;
+int parseArgument(int argc, char *args[]){
+	char *str, *flag, *value;
+	int  i, index, isVerbose, limit, arraysize, numberOfBenchmarks, workgroupsize;
+	Parameters params;
 
-	if (mode == Global){
-		limit = 100 * 1000 * 1000;
-		/*The maximal block size is 128 because the array size in the kernel is at most 128.*/
-		numberOfBenchmarks = 48;
-		benchmarks = (Benchmark *)malloc(numberOfBenchmarks*sizeof(Benchmark));
-		//Make a list to store all the parameters for benchmarking the global size.
-		index = 0;
-		//Start from block size of 25 for the limit of 100 million. The maximal block size is 128.
-		for (block_size = 30; block_size<=500; block_size+=10){
-			benchmarks[index].workgroupSize = WORKGROUPSIZE;
-			benchmarks[index].limit = limit;		
-			benchmarks[index].block_size = block_size;
-			benchmarks[index].numberOfPrimes = results[8];
-			index++;
-		}		
-	}else if(mode == MaxLimit){
-		//Make a list to store the parameters for benchmarking the limit.
-		block_size = 64;//The optimal block size.
-		limit = 1000*1000*1000;
-		numberOfBenchmarks = 1;
-		benchmarks = (Benchmark *)malloc(numberOfBenchmarks*sizeof(Benchmark));
-		res_index = log10((float)limit);	
-		benchmarks[0].limit = limit;
-		benchmarks[0].workgroupSize = WORKGROUPSIZE;
-		benchmarks[0].block_size = block_size;
-		benchmarks[0].numberOfPrimes = results[res_index]; 
-		
+	if(argc != 2){
+		printf("Please specify the arguments: '-b'\n");
+		return NOT_SUCCESS;
 	}
-	else{
-		//Make a list to store the parameters for benchmarking the limit.
-		block_size = 64;//The optimal block size.
-		limit = 1000*1000*1000;
-		numberOfBenchmarks = log10((float)limit);
-		benchmarks = (Benchmark *)malloc(numberOfBenchmarks*sizeof(Benchmark));
-		res_index = 1;		
-		for (index = 0; index <numberOfBenchmarks; index++){
-			limit = pow((float)10, res_index);
-			benchmarks[index].limit = limit;
-			benchmarks[index].workgroupSize = WORKGROUPSIZE;
-			benchmarks[index].block_size = block_size;
-			benchmarks[index].numberOfPrimes = results[res_index];
-			res_index++;
+
+	i = 1;
+	while(i<= argc) {
+		str = args[i-1];
+		//Split the argument into two words.
+		flag = strtok(str, "=");
+		value = strtok(NULL,"=");
+		if(strncmp(flag, "-b", sizeof("-b"))==0){			
+			if(strncmp(value, "datastructure", sizeof("datastructure")) == 0){
+				//Benchmark the 4 kinds of data structures.				
+				numberOfBenchmarks = 4;
+				limit = 1000*1000*1000;
+				arraysize = 64;
+				workgroupsize = 64;
+				benchmarks = (Benchmark *)malloc(numberOfBenchmarks*sizeof(Benchmark));
+				//Fixed level
+				for (index = 0; index <numberOfBenchmarks; index++){					
+					//benchmarks[index].vendor = Vendor_Name[AMD];
+					benchmarks[index].vendor = Vendor_Name[Intel];
+					benchmarks[index].device_type = CL_DEVICE_TYPE_GPU;
+					benchmarks[index].repeats = MAXITERATION;
+					benchmarks[index].kernel_name = DS_Files[index];
+					//Parameters
+					params.limit = limit;
+					params.workgroupsize = workgroupsize;
+					params.arraysize = arraysize;//The array size is fixed to 64 for fairly comparing different data structures. 
+					params.result = results[(int)log10((float)limit)]; 
+					//Set the parameters.
+					benchmarks[index].parameters =params;
+				}				
+
+			} else if (strncmp(value, "arraysize", sizeof("arraysize")) == 0){
+				//Vary the array size for the kernel with array of chars.
+				//The array size is 64, 128, ....1024, 2048 and 4096 
+				int arraysizelist[]= {64,128,256,512, 1024,2048,4096};
+				numberOfBenchmarks = 7;
+				limit = 1000*1000*1000;
+				workgroupsize = 64;
+				benchmarks = (Benchmark *)malloc(numberOfBenchmarks*sizeof(Benchmark));
+				//Fixed level
+				for (index = 0; index <numberOfBenchmarks; index++){
+					arraysize = arraysizelist[index]; 
+					//benchmarks[index].vendor = Vendor_Name[AMD];
+					benchmarks[index].vendor = Vendor_Name[Intel];
+					benchmarks[index].device_type = CL_DEVICE_TYPE_GPU;
+					benchmarks[index].repeats = MAXITERATION;
+					benchmarks[index].kernel_name = ArraySize_Files[index];
+					//Parameters
+					params.limit = limit;
+					params.workgroupsize = workgroupsize;
+					params.arraysize = arraysize;//The array size is fixed to 64 for fairly comparing different data structures. 
+					params.result = results[(int)log10((float)limit)]; 
+					//Set the parameters.
+					benchmarks[index].parameters =params;
+				}
+
+			} else if(strncmp(value, "workgroupsize", sizeof("workgroupsize")) == 0){
+				//Vary the workgroupsize for the kernel with the array-of-chars data structure.
+				//The workgroup size is 64, 128, 256.
+				int wgslist[] = {64,128,256};				
+				numberOfBenchmarks = 3;
+				limit = 1000*1000*1000;
+				arraysize = 64;
+				benchmarks = (Benchmark *)malloc(numberOfBenchmarks*sizeof(Benchmark));
+				for (index = 0; index <numberOfBenchmarks; index++){
+					workgroupsize = wgslist[index];
+					//benchmarks[index].vendor = Vendor_Name[AMD];
+					benchmarks[index].vendor = Vendor_Name[Intel];
+					benchmarks[index].device_type = CL_DEVICE_TYPE_GPU;
+					benchmarks[index].repeats = MAXITERATION;
+					benchmarks[index].kernel_name = "Kernel_arrayOfChars.cl";
+					//Parameters					
+					params.limit = limit;
+					params.workgroupsize = workgroupsize;
+					params.arraysize = arraysize;
+					params.result = results[(int)log10((float)limit)]; 
+					//Set the parameters.
+					benchmarks[index].parameters =params;
+				}
+
+			}else {
+				//Have not assigned the benchmark mode.
+				printf("Please specify the benchmark mode: 'arraysize', 'datastructure' or 'limit'.\n");
+				printf("For example, '-b=datastructure'.\n");
+				return NOT_SUCCESS;
+			}			
 		}
+
+		i++;
+
 	}
+
+	return numberOfBenchmarks;
 }
 
 
 //Defines the entry point for the console application.
 int main(int argc, char *args[]){		
-	int numberOfprimes;
-	int iter;
-	cl_int err;
+	int numberOfprimes, iter, index, limit, arraysize, workgroupsize, result, numberOfBenchmarks, repeats;	
 	clock_t start, end;
-	double diff[MAXITERATION];
-	Benchmark benchmark;
-	int index, limit, block_size, workgroupsize;
-	
+	double diff;
+	Benchmark benchmark; Parameters param;
+	char* vendor; char* kenel_name;
+	cl_device_type device;
 
-	if (argc < 2){
-		printf("Please input the benchmark arugment, for example, 'global', 'limit' or 'maxlimit'.");
+	if((numberOfBenchmarks=parseArgument(argc,args)) == NOT_SUCCESS){
+		printf("Error occurs while parsing the argument");
 		return;
-	}else{
-		index=1;
-		while(index<= argc) {
-
-			if (strncmp(args[index-1], "global", 6) == 0)
-				benchmarkMode = Global;
-			if(strncmp(args[index-1], "maxlimit", 6) == 0)
-				benchmarkMode = MaxLimit;
-			if(strncmp(args[index-1], "limit", 6) == 0)
-				benchmarkMode = Limit;
-
-			if(strncmp(args[index-1], "traditional", 4) == 0)
-				mode = TRADITIONAL;
-			if(strncmp(args[index-1], "pinned", 4) == 0)
-				mode = PINNED;
-			if(strncmp(args[index-1], "verbose", 4) == 0)
-				isVerbose =1;
-
-			if(strncmp(args[index-1], "chararray", 7) == 0)
-				kerneltype = CharArray;
-			if(strncmp(args[index-1], "sharedarray", 7) == 0)
-				kerneltype = SharedCharArray;
-			if(strncmp(args[index-1], "ulong", 4) == 0)
-				kerneltype = ULong;
-			if(strncmp(args[index-1], "sharedulongarray", 7) == 0)
-				kerneltype = SharedULongArray;
-
-			if (strncmp(args[index-1], "Intel", 5) == 0)
-				device = Intel;
-			if(strncmp(args[index-1], "NVIDIA", 6) == 0)
-				device = NVIDIA;
-			if(strncmp(args[index-1], "AMD", 3) == 0)
-				device = AMD;
-
-
-
-			index++;
-
-		}
 	}
-
-	generateBenchmark(benchmarkMode);
 	// Benchmark the OpenCL Sieve program.
 	for (index = 0; index < numberOfBenchmarks; index++){
+		//Get the benchmark parameters.
 		benchmark = benchmarks[index];
-		block_size = benchmark.block_size;
-		workgroupsize = benchmark.workgroupSize;
-		limit = benchmark.limit;
-		for (iter = 0; iter < MAXITERATION; iter++){
+		vendor = benchmark.vendor;
+		device = benchmark.device_type;
+		repeats = benchmark.repeats;
+		kenel_name = benchmark.kernel_name;
+
+		param = benchmark.parameters;
+		arraysize = param.arraysize;
+		workgroupsize = param.workgroupsize;
+		limit = param.limit;
+		result = param.result;
+		benchmark.diff = (double *)malloc(repeats*sizeof(double));
+
+		//Repeatedly run the benchmarking experiment.
+		for (iter = 0; iter < repeats; iter++){
 			/*Get the starting time.*/
 			start = clock();
 			numberOfprimes = 0;
 			/*Create and initialize the OpenCL objects.*/
-			//deﬁne_platform(CL_DEVICE_TYPE_CPU, "Intel");
-			deﬁne_platform(CL_DEVICE_TYPE_GPU, device);
+			if(deﬁne_platform(device, vendor) == NOT_SUCCESS){
+				return NOT_SUCCESS;
+			}
 
 			/*Load the program and create the kernel.*/
-			err = Load_program(kerneltype, isVerbose);
+			if(Load_program(kenel_name) == NOT_SUCCESS){
+				return NOT_SUCCESS;
+			}
 
-			//Partition one huge work (i.e. 1 billion) into a number of fine-grained tasks in 1-million size.
-			numberOfprimes = Sieve_OpenCL(benchmark.limit, benchmark.block_size, benchmark.workgroupSize, mode);
+			/* For NVIDIA, partition one huge work (i.e. 1 billion) into a number of fine-grained tasks in 1-million size.
+			For AMD, no needs to partition the work because the display is not attached to AMD graphic card and thus
+			the time limit can be ignored. */
+			numberOfprimes = Sieve_OpenCL(limit, arraysize, workgroupsize);
 
 			// release OpenCL resources
-			err = free_OpenCL();
-			printf("The OpenCL Sieve function is complete.\n");	
+			if(free_OpenCL() == NOT_SUCCESS){
+				return NOT_SUCCESS;
+			}
+			//printf("The OpenCL Sieve function is complete.\n");	
 
-			//Check the number of primes is matched with the result.
-			if(numberOfprimes != benchmark.numberOfPrimes){
-		    		printf("The result (%d) is wrong. The number of primes <= %d is %d", numberOfprimes, benchmark.limit, benchmark.numberOfPrimes);
+			/*Check the number of primes is matched with the result.
+			The total number of primes <= the max is here(http://primes.utm.edu/howmany.shtml) */
+			if(numberOfprimes != result){
+				printf("The result (%d) is wrong. The number of primes <= %d is %d", numberOfprimes, limit, result);
 				system("pause");
+				break;
 			}
 
 			/*Get the ending time.*/
 			end = clock();
-			/* The total number of primes <= the max is here(http://primes.utm.edu/howmany.shtml) */
+
 			/*Get the difference of starting and ending time.*/
-			diff[iter] = (double)(end - start) / (CLOCKS_PER_SEC / 1000);
-			printf("\nIn the %dth iteration, the total number of primes upto %d is %d\n", iter, benchmark.limit, numberOfprimes);
-			printf("The %dth iteration takes %.2f milliseconds on average.\n", iter, diff[iter]);
+			diff = (double)(end - start) / (CLOCKS_PER_SEC / 1000);
+			benchmark.diff[iter] = diff;
+			printf("Experiment #%d: the total number of primes less than %d is %d.\n", iter, limit, numberOfprimes);
+			printf("Experiment #%d: Kernel = %s ArraySize = %d Workgroupsize = %d Vendor = %s\n",  iter, kenel_name, 
+				arraysize, workgroupsize, vendor);
+			printf("Experiment #%d: %f seconds.\n\n", iter, diff);
 		}
-		writeBenchmarksToCSV(diff, MAXITERATION, limit, workgroupsize, block_size, kerneltype);
+		writeBenchmarksToCSV(benchmark);
 	}
 	free(benchmarks);
-	//system("pause");
+
+	system("pause");
 	return 0;
 }

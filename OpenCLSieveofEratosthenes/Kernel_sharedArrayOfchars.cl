@@ -1,4 +1,4 @@
-#pragma cl_nv_compiler_options
+//#pragma cl_nv_compiler_options
 #define BLOCKSIZE 64
 #define ARRAYSIZE 64*64
 /*Use the shared one-D array to store the nonPrimes list.*/
@@ -17,6 +17,7 @@ __kernel void sieve(__global int *primes,
 	//Get the global thread ID                                 
 	gid  = get_global_id(0);
 	lid = get_local_id(0);
+	subtotals[gid]=0;
 	if(gid < numberOfBlocks){		
 		//Get the block size, block start, and block end.
 		block_start = (gid * block_size) + start_limit;		
@@ -48,7 +49,8 @@ __kernel void sieve(__global int *primes,
 		subtotal=0;
 		//Count the primes within the range.	
 		for(i=block_start; i < block_end; i++){			
-			if ((i >= 2) && (nonPrimes[offset + (i-block_start)] == 0)){
+			//if ((i >= 2) && (nonPrimes[offset + (i-block_start)] == 0)){
+			if(nonPrimes[offset + (i-block_start)] == 0){
 				subtotal++;
 			}
 		}

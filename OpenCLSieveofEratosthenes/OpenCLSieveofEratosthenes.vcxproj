@@ -18,7 +18,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v110</PlatformToolset>
+    <PlatformToolset>v100</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -80,12 +80,19 @@
     <ClCompile Include="Sieve.c" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Kernel_sharedUlongArray.cl" />
-    <None Include="Kernel_ulong.cl">
+    <None Include="Kernel_arrayOfchars.cl" />
+    <None Include="Kernel_arrayOfchars_128.cl" />
+    <None Include="Kernel_arrayOfChars_2048.cl" />
+    <None Include="Kernel_arrayOfChars_256.cl" />
+    <None Include="Kernel_arrayOfChars_4096.cl" />
+    <None Include="Kernel_arrayOfchars_512.cl" />
+    <None Include="Kernel_sharedArrayOfulongs.cl" />
+    <None Include="Kernel_unsignedLong.cl">
       <DeploymentContent>true</DeploymentContent>
     </None>
-    <None Include="Kernel_charArray.cl" />
-    <None Include="Kernel_sharedCharArray.cl" />
+    <None Include="Kernel_arrayOfchars_64.cl" />
+    <None Include="Kernel_sharedArrayOfchars.cl" />
+    <None Include="Kernel_arrayOfchars_1024.cl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

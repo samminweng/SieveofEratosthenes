@@ -13,6 +13,12 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Source Files\arraysize">
+      <UniqueIdentifier>{b7c908f5-e282-4e7d-b25d-baaa337507ae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\datastructure">
+      <UniqueIdentifier>{d75bedc2-cf36-4be6-b262-031a1eb3ff88}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Header.h">
@@ -28,17 +34,41 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Kernel_ulong.cl">
-      <Filter>Source Files</Filter>
+    <None Include="Kernel_sharedArrayOfchars.cl">
+      <Filter>Source Files\datastructure</Filter>
     </None>
-    <None Include="Kernel_charArray.cl">
-      <Filter>Source Files</Filter>
+    <None Include="Kernel_sharedArrayOfulongs.cl">
+      <Filter>Source Files\datastructure</Filter>
     </None>
-    <None Include="Kernel_sharedCharArray.cl">
-      <Filter>Source Files</Filter>
+    <None Include="Kernel_unsignedLong.cl">
+      <Filter>Source Files\datastructure</Filter>
     </None>
-    <None Include="Kernel_sharedUlongArray.cl">
-      <Filter>Source Files</Filter>
+    <None Include="Kernel_arrayOfchars.cl">
+      <Filter>Source Files\datastructure</Filter>
+    </None>
+    <None Include="Kernel_arrayOfchars_128.cl">
+      <Filter>Source Files\arraysize</Filter>
+    </None>
+    <None Include="Kernel_arrayOfChars_256.cl">
+      <Filter>Source Files\arraysize</Filter>
+    </None>
+    <None Include="Kernel_arrayOfchars_512.cl">
+      <Filter>Source Files\arraysize</Filter>
+    </None>
+    <None Include="Kernel_arrayOfchars_1024.cl">
+      <Filter>Source Files\arraysize</Filter>
+    </None>
+    <None Include="Kernel_arrayOfchars_64.cl">
+      <Filter>Source Files\arraysize</Filter>
+    </None>
+    <None Include="Kernel_arrayOfchars.cl">
+      <Filter>Source Files\datastructure</Filter>
+    </None>
+    <None Include="Kernel_arrayOfChars_2048.cl">
+      <Filter>Source Files\arraysize</Filter>
+    </None>
+    <None Include="Kernel_arrayOfChars_4096.cl">
+      <Filter>Source Files\arraysize</Filter>
     </None>
   </ItemGroup>
 </Project>
