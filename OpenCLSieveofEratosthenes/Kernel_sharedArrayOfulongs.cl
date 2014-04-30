@@ -1,4 +1,4 @@
-#pragma cl_nv_compiler_options
+//#pragma cl_nv_compiler_options
 #define ARRAYSIZE 64
 //#pragma OPENCL EXTENSION cl_intel_printf : enable
 /*Count the number of 1 bits in an unsigned long integer.*/
@@ -18,21 +18,16 @@ __kernel void sieve(__global int *primes,
 					int numberOfBlocks,
 					int start_limit,
 					int end_limit){ 
-	int gid, lid, global_size, limit, index, offset;
-	int block_start, block_end;
-	int m, p, i, subtotal, iter;
-	//Declare a shared
+	int gid, lid, block_start, block_end;
+	int m, p, i, subtotal;
+	//Declare a shared and local ararys.
 	__local ulong nonPrimes[ARRAYSIZE];
 	//Get the global thread ID                                 
-	gid  = get_global_id(0);
+	gid = get_global_id(0);
 	lid = get_local_id(0);
-	//Get the block size, block start, and block end.
-	limit = end_limit-start_limit;
-	subtotal = 0;
-
+	subtotals[gid]=0;
 	if(gid < numberOfBlocks){
-	//if(gid < -1){	
-		//Get the global size.
+		//Get the block size, block start, and block end.
 		block_start = (gid * block_size) + start_limit;		
 		block_end = min((gid+1)*block_size + start_limit, end_limit+1);
 		nonPrimes[lid] = 0L;
@@ -54,10 +49,8 @@ __kernel void sieve(__global int *primes,
 		}
 		
 		//Count the primes within the range.
-		subtotal = (block_end - block_start) - bitCount(nonPrimes[lid]);
-		if(block_start == 0){
-			subtotal -= 2;
-		}
+		//subtotal = (block_end - block_start) - bitCount(nonPrimes[lid]);
+		subtotal = (block_end - block_start) - popcount(nonPrimes[lid]);	
 		subtotals[gid]=subtotal;
 	}
 	

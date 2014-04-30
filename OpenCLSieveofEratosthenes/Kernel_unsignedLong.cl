@@ -1,4 +1,4 @@
-#pragma cl_nv_compiler_options
+//#pragma cl_nv_compiler_options
 //#pragma OPENCL EXTENSION cl_intel_printf : enable
 /*Count the number of 1 bits in an unsigned long integer.*/
 int bitCount(ulong n) {
@@ -10,31 +10,25 @@ int bitCount(ulong n) {
     return counter;
  }
 /*Use the ulong integer to store the nonPrimes list.*/
-__kernel void sieve(__global int *primes,
+__kernel void sieve(__global __read_only int *primes,
 					int numberOfPrimes,
-					__global short int *subtotals,
+					__global __write_only short int *subtotals,
 					int block_size,
 					int numberOfBlocks,
 					int start_limit,
 					int end_limit){ 
-	int gid, lid, global_size, limit, index;
+	int gid;
 	int block_start, block_end;
-	int m, p, i, subtotal, iter;
-	//Declare a shared 
+	int m, p, i, subtotal;
+	//Declare a private unsigned long integer, shared by all work-item of a work-group.
 	ulong nonPrimes;
 	//Get the global thread ID                                 
 	gid  = get_global_id(0);
-	lid = get_local_id(0);
-	//Get the block size, block start, and block end.
-	limit = end_limit-start_limit;
-	subtotal = 0;
-
+	subtotals[gid]=0;
 	if(gid < numberOfBlocks){
-	//if(gid < -1){	
-		//Get the global size.
+		//Get the block size, block start, and block end.
 		block_start = (gid * block_size) + start_limit;		
-		block_end = min((gid+1)*block_size + start_limit, end_limit+1);		
-		//offset = block_start;
+		block_end = min((gid+1)*block_size + start_limit, end_limit+1);
 		nonPrimes = 0L;
 		//For each given prime number, mark its multiples in the sub-range.	
 		for(i=0; i<numberOfPrimes; i++){
@@ -54,10 +48,9 @@ __kernel void sieve(__global int *primes,
 		}
 		
 		//Count the primes within the range.
-		subtotal = (block_end - block_start) - bitCount(nonPrimes);
-		if(block_start == 0){
-			subtotal -= 2;
-		}
+		//subtotal = (block_end - block_start) - bitCount(nonPrimes);
+		//The 'popcount' finds the number of non-zero bits in a integer.
+		subtotal = (block_end - block_start) - popcount(nonPrimes);
 		subtotals[gid]=subtotal;
 	}
 	

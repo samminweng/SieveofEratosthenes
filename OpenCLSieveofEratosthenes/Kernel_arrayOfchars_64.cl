@@ -1,5 +1,5 @@
-#pragma cl_nv_compiler_options
-#define BLOCKSIZE 64
+//#pragma cl_nv_compiler_options
+#define ARRAYSIZE 64
 /*Use the constant array to store the nonPrimes list.*/
 __kernel void sieve(__global int *primes,
 					int numberOfPrimes,
@@ -8,25 +8,21 @@ __kernel void sieve(__global int *primes,
 					int numberOfBlocks,
 					int start_limit,
 					int end_limit){ 
-	int gid, lid, global_size, limit;
-	int block_start, block_end;
+	int gid, lid, block_start, block_end;
 	int m, p, i, subtotal, offset;
 	//Declare a fixed-length array.
-	char nonPrimes[BLOCKSIZE];
+	char nonPrimes[ARRAYSIZE];
 	//Get the global thread ID                                 
 	gid  = get_global_id(0);
 	lid = get_local_id(0);
-	subtotals[gid] = 0;
-	//Get the block size, block start, and block end.
-	limit = end_limit-start_limit;
+	subtotals[gid]=0;
 	if(gid < numberOfBlocks){
-		//Get the global size.
+		//Get the block size, block start, and block end.
 		block_start = (gid * block_size) + start_limit;		
-		block_end = min((gid+1)*block_size + start_limit, end_limit+1);		
-		offset = block_start;
+		block_end = min((gid+1)*block_size + start_limit, end_limit+1);
 		
 		//Initialize the nonPrimes array.
-		for(i=0;i<BLOCKSIZE;i++)
+		for(i=0;i<ARRAYSIZE;i++)
 			nonPrimes[i]=0;
 
 		//For each given prime number, mark its multiples in the sub-range.	
@@ -41,16 +37,18 @@ __kernel void sieve(__global int *primes,
 
 			//Mark the numbers with the prime.
 			while(m < block_end){	
-				nonPrimes[m-offset] = 1;
+				nonPrimes[m-block_start] = 1;
 				m = m + p;
 			}
 		}
 		subtotal=0;
 		//Count the primes within the range.	
-		for(i=block_start; i < block_end; i++)
-			if ((i >= 2) && (nonPrimes[i-offset] == 0))
+		for(i=block_start; i < block_end; i++){
+			//if ((i >= 2) && (nonPrimes[i-block_start] == 0))
+			if(nonPrimes[i-block_start] == 0){
 				subtotal++;
-
+			}
+		}
 		subtotals[gid]=subtotal;
 	}
 }

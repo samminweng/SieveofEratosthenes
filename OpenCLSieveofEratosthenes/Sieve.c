@@ -1,100 +1,89 @@
 ﻿#include "Header.h"
 #define MAXLENGTH 200
+#define THRESHOLD 1000000000// Used to break down the work.
 
-/*Global variables*/
+
 //OpenCL objects
-cl_platform_id cpPlatform[32];    // an array to hold the OpenCL platforms
-cl_device_id device_id;           // device ID
-cl_context context;               // context
-cl_command_queue queue;           // command queue
-cl_program program;               // program
-cl_kernel kernel;                 // kernel
-cl_int err;
-/*Global variables*/
-int global_size;
-//For printing out the device info.
-cl_uint num_platforms;			  // the number of platforms
-cl_uint num_devices;			  // the number of devices
-char vendor[1024];				  // the platform vendor
-char deviceName[1024];			  // the devices name
+cl_program program;// program
+cl_context context;// context
+cl_device_id device_id;// device ID
+cl_kernel kernel; // kernel
+cl_command_queue queue;
 
-char* convertKernelTypeToString(KernelType kt){
-	char *name;
-	if(kt == CharArray){
-		name = "Kernel_charArray.cl";
-	}else if(kt == SharedCharArray){
-		name = "Kernel_sharedCharArray.cl";
-	}else if(kt == ULong) {
-		name = "Kernel_ulong.cl";
-	}else{
-		name = "Kernel_sharedUlongArray.cl";
-	}
+typedef struct {
+	//Previous found primes
+	int prime_length;
+	int* primes;
+} PrimeList;
 
-	return name; 
-}
-
+//Store the OpenCL platform and device info.
+typedef struct{
+	cl_uint num_platforms;		// the number of platforms
+	char* vendor;				// the platform vendor
+	cl_uint num_devices;		// the number of devices
+	cl_device_id device_id;		// device ID
+	int global_size;
+} OpenCLPlatform;
+OpenCLPlatform platform;
 
 
 /*
 Initialize the necessary OpenCL objects.
 */
-cl_int deﬁne_platform(cl_device_type device, GraphicCard card){
+int deﬁne_platform(cl_device_type device_type, char* vendor_name){
 	cl_int err;
+	cl_platform_id cpPlatform[32];    // an array to hold the OpenCL platforms
+	cl_uint num_platforms;			  // the number of platforms
+	char vendor[MAXLENGTH];				  // the platform vendor
+	cl_uint num_devices;			  // the number of devices
+	cl_uint i;
 
-	// Get the platform
-	err = clGetPlatformIDs(32, &cpPlatform, &num_platforms);	
+	// Return a list of platforms
+	err = clGetPlatformIDs(32, cpPlatform, &num_platforms);	
 
-	if (device == CL_DEVICE_TYPE_CPU){
+	for(i = 0;i<num_platforms;i++){
 		//Get the platform info
-		clGetPlatformInfo(cpPlatform[0], CL_PLATFORM_VENDOR, sizeof(vendor), vendor, NULL);
-		// Discover the devices within the platform
-		err = clGetDeviceIDs(cpPlatform[0], device, 1, &device_id, &num_devices);
-	}
-	else if (device == CL_DEVICE_TYPE_GPU ){
-		if(card == AMD || card == NVIDIA){
-			//Get the platform info
-			clGetPlatformInfo(cpPlatform[1], CL_PLATFORM_VENDOR, sizeof(vendor), vendor, NULL);
+		clGetPlatformInfo(cpPlatform[i], CL_PLATFORM_VENDOR, sizeof(vendor), vendor, NULL);
+		if(strncmp(vendor_name, vendor, sizeof(vendor)) == 0){			
 			// Discover the devices within the platform
-			err = clGetDeviceIDs(cpPlatform[1], device, 1, &device_id, &num_devices);
-		}else{
-			clGetPlatformInfo(cpPlatform[0], CL_PLATFORM_VENDOR, sizeof(vendor), vendor, NULL);
-			err = clGetDeviceIDs(cpPlatform[0], device, 1, &device_id, &num_devices);
+			err = clGetDeviceIDs(cpPlatform[i], device_type, 1, &device_id, &num_devices);
+			if(err != 0){
+				printf("Fail to configure the OpenCL device.\n");
+				return NOT_SUCCESS;
+			}else{
+				platform.num_platforms = num_platforms;
+				platform.vendor = vendor_name;
+				platform.num_devices = num_devices;
+				platform.device_id = device_id;
+				break;
+			}
+
 		}
 	}
 
 
-	// Create a context for the device.
-	context = clCreateContext(0, 1, &device_id, NULL, NULL, &err);
-	// Create a command queue to feed the device.
-	queue = clCreateCommandQueue(context, device_id, CL_QUEUE_PROFILING_ENABLE, &err);
 
-	return err;
+	return SUCCESS;
 }
 
 /*
 Load the computing program from a source file and create the kernel.
 */
-int Load_program(KernelType kt, int isVerbose)
+int Load_program(char* filename)
 {
 	FILE* fp;
-	FILE *ptx;
-	size_t fileSize;
+	size_t sizes;
 	char *buffer;
-	char* name;
-	char *filename;
 	errno_t fp_err;
 	int count;
 	cl_int err;
-	cl_build_status status;
-	size_t sizes;
-	int i;
-	char* log;
+	cl_build_status status;	
 
-	filename = convertKernelTypeToString(kt);	
+
 	// get size of kernel source
 	if ((fp_err = fopen_s(&fp, filename, "r")) != 0){
 		printf("Failed to load the file:%s\n", *filename);
-		return fp_err;
+		return NOT_SUCCESS;
 	}
 
 	//Compute the file size
@@ -109,37 +98,41 @@ int Load_program(KernelType kt, int isVerbose)
 	// read kernel source into buffer	
 	buffer = (char*)malloc(count + 1);
 	buffer[count] = '\0';//End of file.	
-	fileSize = fread(buffer, 1, count, fp);
+	sizes = fread(buffer, 1, count, fp);
 	fclose(fp);
 
+	// Create a context for the device.
+	context = clCreateContext(0, 1, &device_id, NULL, NULL, &err);
+	
 	// Create the compute program from the source buffer
-	program = clCreateProgramWithSource(context, 1, (const char **)& buffer, (const size_t *)&fileSize, &err);
+	program = clCreateProgramWithSource(context, 1, (const char **)& buffer, (const size_t *)&sizes, &err);
 	if (program == 0) {
-		return err;
+		printf("Failed to create the program with source.");
+		return NOT_SUCCESS;
 	}
 
 	free(buffer);
 
 	// Build the program executable	
 	//err = clBuildProgram(program, 0, NULL, "-cl-nv-maxrregcount=24 -cl-nv-verbose", NULL, NULL);
-	err = clBuildProgram(program, 1, &device_id, "-cl-nv-verbose", NULL, NULL);
+	//err = clBuildProgram(program, 1, &device_id, "-cl-nv-verbose", NULL, NULL);
+	err = clBuildProgram(program, 1, &device_id, "", NULL, NULL);
 	// check build error and build status first
 	clGetProgramBuildInfo(program, device_id, CL_PROGRAM_BUILD_STATUS, sizeof(cl_build_status), &status, NULL);
-	if (isVerbose==1 || status != CL_SUCCESS) {
+	if (status != CL_SUCCESS) {
 		clGetProgramBuildInfo(program, device_id, CL_PROGRAM_BUILD_LOG, 0, NULL, &sizes);
-
-		log = (char*) calloc (sizes+1, sizeof(char));
-		clGetProgramBuildInfo(program, device_id, CL_PROGRAM_BUILD_LOG, sizes, log, NULL);
-		log[sizes]='\0';
-		if ((err = fopen_s(&ptx, "ptxcode.txt", "w")) != 0)
+		buffer = (char*) calloc (sizes+1, sizeof(char));
+		clGetProgramBuildInfo(program, device_id, CL_PROGRAM_BUILD_LOG, sizes, buffer, NULL);
+		buffer[sizes]='\0';
+		if ((err = fopen_s(&fp, "error.txt", "w")) != 0)
 		{
 			printf("Failed to open the file:ptxcode.txt\n");
-			return;
+			return NOT_SUCCESS;
 		}
-		fprintf(ptx,"%s", log);
-		fclose(ptx);
-		free(log);
-		exit(0);
+		fprintf(fp,"%s", buffer);
+		fclose(fp);
+		free(buffer);
+		//exit(0);
 	}
 
 
@@ -147,121 +140,129 @@ int Load_program(KernelType kt, int isVerbose)
 	kernel = clCreateKernel(program, "sieve", &err);
 	if (err != 0){
 		printf("Error occurs while creating the kernel.");
-		return -1;
+		return NOT_SUCCESS;
 	}
 
-	return err;
+	return SUCCESS;
 }
 
 /*
 Release the allocated OpenCL objects.
 */
-cl_int free_OpenCL(){
-	cl_int err;
-	err = clReleaseKernel(kernel);
-	err = clReleaseProgram(program);
-	err = clReleaseCommandQueue(queue);
-	err = clReleaseContext(context);
-	return err;
+int free_OpenCL(){
+
+	if(clReleaseKernel(kernel) != 0){
+		printf("Fail to release the kernel");
+		return NOT_SUCCESS;
+	}
+
+	if(clReleaseProgram(program) != 0){
+		printf("Fail to release the program");
+		return NOT_SUCCESS;
+	}
+
+	if(clReleaseCommandQueue(queue) != 0){
+		printf("Fail to release the queue");
+		return NOT_SUCCESS;
+	}
+
+	if(clReleaseContext(context) != 0){
+		printf("Fail to release the context");
+		return NOT_SUCCESS;
+	}
+	return SUCCESS;
 }
+
 
 /*
-Allocate a block of size integer of memory to store the prime flags and assign their initial values (0:true, 1:false).
+Find all the primes <= sqrt(limit) by sequentially sieving the list. 
 */
-char* makeNonPrimes(int max){
-	int i;
-	char *nonPrimes;
-	/*Allocate a block of memory for an array, and initialize all its bits to zero.
-	*/
-	nonPrimes = (char *)calloc(max + 1,sizeof(char));
-	if (nonPrimes == NULL){
-		printf("Fail to allocate the array of %d chars.\n", max);
-		return NULL;
-	}
-	nonPrimes[0] = 1;
-	nonPrimes[1] = 1;
+PrimeList Sieve_Sqrt_limit(int limit){
 
-	return nonPrimes;
+	int p, m, n, prime_length;
+	char *numbers;
+	PrimeList primelist;
+	int *primes;
+	n = sqrt((double)limit);
+	//Allocate a block of memory for an array.
+	numbers = (char *)calloc(n + 1,sizeof(char));
+	if (numbers == NULL){
+		printf("Fail to allocate the array of %d chars.\n", numbers);
+		return primelist;
+	}
+	numbers[0] = 1;
+	numbers[1] = 1;
+	// standard host allocation
+	primes = (int *)malloc(n*sizeof(int));
+	//The first prime
+	p = 2;
+	prime_length = 0;
+	while (p <= n){
+		//0:true, 1:false
+		if (numbers[p] == 0){
+			m = p*p;
+			while (m <= n){
+				numbers[m] = 1;
+				m = m + p;
+			}
+			//Add the prime into the primes list.
+			primes[prime_length] = p;
+			prime_length++;
+		}
+		p++;	
+	}
+	
+	//primelist = (PrimeList *)malloc(sizeof(PrimeList));
+	primelist.primes = primes;
+	primelist.prime_length = prime_length;
+
+	free(numbers);
+	return primelist;
 }
+
+
 /*
 * Find all of the primes upto the limit by using the OpenCL objects.
 * Check if the work requires the decomposition.
-If so, then split the work into the small tasks of 100 million in size.*/
-int Sieve_OpenCL(int max, int block_size, int workgroupSize, MemeoryMode memMode){
+If so, then split the work into the small tasks of 1000 million in size.*/
+int Sieve_OpenCL(int limit, int arraysize, int workgroupsize){
 
-	int n, p, i, m, total;
+	int n, i, total;
 	int numberOfBlocks, numberOfTasks;
-	int start, end, task_id, threshold;
+	int start, end, task_id;
 	short int *subtotals;
 	// Device list buffers	
 	cl_mem d_primes;
 	cl_mem *d_subtotals;
-	cl_mem cmPinnedDataIn = NULL;
-	cl_mem cmPinnedDataOut = NULL;
-	void* dm_idata = NULL;
-	int *primes;
+	cl_int err;
+	int global_size;
+	PrimeList primelist;
+	int* primes;
 	int prime_length;
-	char *nonPrimes;
 
-	threshold = pow((float)10, 8);
-	numberOfTasks = ceil(max/(float)threshold);
-	err=0;
-	nonPrimes = NULL;
-	prime_length = 1;
-	n = sqrt((double)max);
-	d_primes = NULL;
+
+	err = 0;
+	n = sqrt((double)limit);
+	primelist = Sieve_Sqrt_limit(limit);
+	prime_length = primelist.prime_length;
+	primes = primelist.primes;
+
+	// Create a command queue to feed the device.
+	queue = clCreateCommandQueue(context, device_id, CL_QUEUE_PROFILING_ENABLE, &err);
+	//Create the input prime list.
 	d_primes = clCreateBuffer(context, CL_MEM_READ_ONLY, n*sizeof(int), NULL, err);
-	if(memMode == PINNED){
-		//Create the previous found prime list on the host by using the pinned memory whose bandwidth is highest.
-		cmPinnedDataIn = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_ALLOC_HOST_PTR, n*sizeof(int), NULL, err);	
-		//map the d_primes pointer (on the device) to the host primes pointer.
-		primes = (int *)clEnqueueMapBuffer(queue, cmPinnedDataIn, CL_FALSE, CL_MAP_READ, 0, n*sizeof(int), 0, NULL, NULL, NULL);
-		//clEnqueueUnmapMemObject(queue, cmPinnedData, (void*)primes, 0, NULL, NULL);
-	}else{
-		// standard host allocation
-		primes = (int *)malloc(n*sizeof(int));
+	clEnqueueWriteBuffer(queue, d_primes, CL_TRUE, 0, n*sizeof(int), primes, 0, NULL, NULL);
 
-	}
-
-	nonPrimes = makeNonPrimes(n);
-	/*The maximal length of prime list*/
-
-	primes[prime_length-1] = 2;
-	p = 2;
-	while (p <= n){
-		//0:true, 1:false
-		if (nonPrimes[p] == 0){
-			m = p*p;
-			while (m <= n){
-				nonPrimes[m] = 1;
-				m = m + p;
-			}
-			//Add the prime into the primes list.
-			prime_length++;
-			primes[prime_length-1] = p;
-
-		}
-		p++;	
-	}
-	if(memMode == PINNED){
-		//Write out the prime to the device memory 
-		clEnqueueWriteBuffer(queue, d_primes, CL_FALSE, 0, n*sizeof(int), primes, 0, NULL, NULL);
-	}else{
-		clEnqueueWriteBuffer(queue, d_primes, CL_TRUE, 0, n*sizeof(int), primes, 0, NULL, NULL);
-	}
-
-
-	free(nonPrimes);
-	task_id=0;
-	start = 0;
-
+	start=0;
+	numberOfTasks = ceil(limit/(float)THRESHOLD);
 	d_subtotals = (cl_mem*)malloc(numberOfTasks * sizeof(cl_mem*));
-	while(start != max){
-		end = min(start + threshold, max);
+	//while(start !=limit){
+	for(task_id=0;task_id<numberOfTasks;task_id++){
+		end = min(start + THRESHOLD, limit);
 		// Total number of blocks
-		numberOfBlocks = ceil((end- start)/(float)block_size);
+		numberOfBlocks = ceil((end- start)/(float)arraysize);
 		// Calculate the global size of the task.
-		global_size = workgroupSize * ceil((end - start)/(float)(block_size*workgroupSize));
+		global_size = workgroupsize * ceil((end - start)/(float)(arraysize*workgroupsize));
 
 		// Create the input and output in device memory.		
 		d_subtotals[task_id] = clCreateBuffer(context, CL_MEM_WRITE_ONLY, numberOfBlocks*sizeof(short int), NULL, err);
@@ -270,12 +271,15 @@ int Sieve_OpenCL(int max, int block_size, int workgroupSize, MemeoryMode memMode
 		err = clSetKernelArg(kernel, 0, sizeof(cl_mem), &d_primes);
 		err |= clSetKernelArg(kernel, 1, sizeof(int), &prime_length);
 		err |= clSetKernelArg(kernel, 2, sizeof(cl_mem), &d_subtotals[task_id]);
-		err |= clSetKernelArg(kernel, 3, sizeof(int), &block_size);
+		err |= clSetKernelArg(kernel, 3, sizeof(int), &arraysize);
 		err |= clSetKernelArg(kernel, 4, sizeof(int), &numberOfBlocks);
 		err |= clSetKernelArg(kernel, 5, sizeof(int), &start);
 		err |= clSetKernelArg(kernel, 6, sizeof(int), &end);
+
 		// Execute the kernel over the data set.
-		err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global_size, &workgroupSize, 0, NULL, NULL);
+		err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global_size, &workgroupsize, 0, NULL, NULL);
+		//Set the global size info.
+		platform.global_size = global_size;
 		if (err != 0){
 			printf("Error occurs while enqueue the OpenCL kernels.");
 			system("pause");
@@ -283,7 +287,7 @@ int Sieve_OpenCL(int max, int block_size, int workgroupSize, MemeoryMode memMode
 		}
 
 		start = end;
-		task_id++;
+		
 	}
 
 	// Block until all the commands issued to the command queue have been complete before reading back results
@@ -295,15 +299,7 @@ int Sieve_OpenCL(int max, int block_size, int workgroupSize, MemeoryMode memMode
 		return -1;
 	}
 
-	//UnMap the d_primes to primes.	
-	if(primes){
-		if(memMode == PINNED){
-			err = clEnqueueUnmapMemObject(queue, cmPinnedDataIn, (void*)primes, 0, NULL,NULL);
-			err = clReleaseMemObject(cmPinnedDataIn);
-		}else{
-			free(primes);
-		}
-	}
+	
 	err = clReleaseMemObject(d_primes);
 	total=0;
 	// Use the host memory to store the subtotals.
@@ -317,16 +313,20 @@ int Sieve_OpenCL(int max, int block_size, int workgroupSize, MemeoryMode memMode
 		//Clean up the OpenCL resources.
 		err = clReleaseMemObject(d_subtotals[task_id]);		
 	}
+	//Substract (0 and 1) from the total.
+	total -= 2;
+
 	free(subtotals);	
 	free(d_subtotals);
-
-
+	//Free the primes.	
+	free(primes);
+	
 	return total;
 }
 
 
 /*Create a CSV file and write all the benchmarks to this file.*/
-void writeBenchmarksToCSV(double diff[], int size, int max, int workgroupSize, int block_size, KernelType kt){
+void writeBenchmarksToCSV(Benchmark benchmark){
 
 	cl_uint numberOfCores;			  // the number of cores of on a device
 	cl_long amountOfMemory;			  // the amount of memory on a device
@@ -334,21 +334,25 @@ void writeBenchmarksToCSV(double diff[], int size, int max, int workgroupSize, i
 	cl_ulong maxAlocatableMem;		  // the maximum allocatable memory
 	cl_ulong localMem;				  // the local memory for a device
 	cl_bool available;				  // the device is available
-	cl_ulong buf_ulong;
+	//cl_ulong buf_ulong;
+	size_t p_size;
 	size_t valueSize;
 	char value[MAXLENGTH];
+
+	char deviceName[MAXLENGTH];
+	char vendor[MAXLENGTH];
 	int iter;	
 	FILE *file;
-	char *kt_str;
-	/*Opencl errors*/
+	//char *kt_str;
+	//Opencl errors
 	cl_int err;
 	char str[MAXLENGTH];
 	char filename[MAXLENGTH] = "benchmark\\openclSieve";
 	//Make a directory.
 	err = system("mkdir benchmark");	
-	kt_str = convertKernelTypeToString(kt);
-
-	sprintf_s(str, MAXLENGTH, ".%s.Limit%d.WorkGroupSize%d.Block%d.Global%d", kt_str, max, workgroupSize, block_size, global_size);
+	
+	sprintf_s(str, MAXLENGTH, ".%s.Limit%d.WorkGroupSize%d.ArraySize%d.Global%d", benchmark.kernel_name, benchmark.parameters.limit,
+		benchmark.parameters.workgroupsize, benchmark.parameters.arraysize, platform.global_size);
 	strcat_s(filename, MAXLENGTH, str);
 	strcat_s(filename, MAXLENGTH, ".csv");
 
@@ -358,9 +362,9 @@ void writeBenchmarksToCSV(double diff[], int size, int max, int workgroupSize, i
 		return;
 	}
 
-	fprintf(file, "#Number of platforms:\t%u\n", num_platforms);
-	fprintf(file, "#Platform Vendor:\t%s\n", vendor);
-	fprintf(file, "#Number of devices:\t%u\n", num_devices);
+	fprintf(file, "#Number of platforms:\t%u\n", platform.num_platforms);
+	fprintf(file, "#Platform Vendor:\t%s\n", platform.vendor);
+	fprintf(file, "#Number of devices:\t%u\n", platform.num_devices);
 
 	//Get the device name
 	clGetDeviceInfo(device_id, CL_DEVICE_NAME, sizeof(deviceName), deviceName, NULL);
@@ -371,7 +375,8 @@ void writeBenchmarksToCSV(double diff[], int size, int max, int workgroupSize, i
 	clGetDeviceInfo(device_id, CL_DEVICE_MAX_MEM_ALLOC_SIZE, sizeof(maxAlocatableMem), &maxAlocatableMem, NULL);
 	clGetDeviceInfo(device_id, CL_DEVICE_LOCAL_MEM_SIZE, sizeof(localMem), &localMem, NULL);
 	clGetDeviceInfo(device_id, CL_DEVICE_AVAILABLE, sizeof(available), &available, NULL);
-	clGetDeviceInfo(device_id, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(buf_ulong), &buf_ulong, NULL);
+	//clGetDeviceInfo(device_id, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(buf_ulong), &buf_ulong, NULL);
+	clGetDeviceInfo(device_id,CL_DEVICE_MAX_WORK_GROUP_SIZE,sizeof(size_t),&p_size,NULL);
 	clGetDeviceInfo(device_id, CL_DEVICE_OPENCL_C_VERSION, 0, NULL, &valueSize);
 	clGetDeviceInfo(device_id, CL_DEVICE_OPENCL_C_VERSION, valueSize, value, NULL);
 
@@ -383,15 +388,16 @@ void writeBenchmarksToCSV(double diff[], int size, int max, int workgroupSize, i
 	fprintf(file, "#Global Memory:\t%0.00f mb\n", (double)amountOfMemory / 1048576);
 	fprintf(file, "#Max Allocateable Memory:\t%0.00f mb\n", (double)maxAlocatableMem / 1048576);
 	fprintf(file, "#Local Memory:\t%u kb\n", (unsigned int)localMem);
-	fprintf(file, "#Device Maximal Work-group Size:\t %llu\n", (unsigned long long)buf_ulong);
+	//fprintf(file, "#Device Maximal Work-group Size:\t %llu\n", (unsigned long long)buf_ulong
+	fprintf(file, "#Device Maximal Work-group Size:\t %d\n", p_size);
 	fprintf(file, "#OpenCL C version:\t %s\n", value);
 	//fprintf(file, "#WorkGroup size=%d, Global Size=%d, Block size=%d\n", workgroupSize, globalSize, block_size);
 
 	//Write the header of the table.
 	fprintf(file, "Iteration\tTime(milliseconds)\n");
 	iter = 0;
-	while (iter < size){
-		fprintf(file, "%d\t%f\n", iter + 1, diff[iter]);
+	while (iter < benchmark.repeats){
+		fprintf(file, "%d\t%f\n", iter + 1, benchmark.diff[iter]);
 		iter++;
 	}
 
