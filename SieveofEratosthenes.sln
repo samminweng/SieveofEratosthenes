@@ -1,6 +1,6 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SequentialSieveofEratosthenes", "SieveofEratosthenes\SieveofEratosthenes.vcxproj", "{28E4EF3C-08BD-4F4F-9FEB-5AB3C5EB5FD0}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenCLMatrixMult", "OpenCLMatrixMult\OpenCLMatrixMult.vcxproj", "{E0B693F8-1050-495D-903D-BB765F007A11}"
