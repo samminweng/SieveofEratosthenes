@@ -3,11 +3,8 @@
 #define VARNAME TEXT("CUDA_CACHE_DISABLE")//Set the environment variable.
 
 enum Vendor {AMD, Intel, NVIDIA};
-<<<<<<< HEAD
+
 char* Vendor_Name[]={"Advanced Micro Devices, Inc.", "Intel(R) Corporation", "NVIDIA Corporation"}; 
-=======
-char* Vendor_Name[]={"Advanced Micro Devices, Inc.", "Intel(R) Corporation", ""}; 
->>>>>>> b1fdb5c5388df077496dd9e0f910653fe024f1d4
 char* DS_Files[]={"Kernel_arrayOfchars.cl", "Kernel_sharedArrayOfChars.cl", "Kernel_SharedArrayOfULongs.cl", "Kernel_unsignedLong.cl"};
 char* ArraySize_Files[]={"Kernel_arrayOfChars_64.cl", "Kernel_arrayOfChars_128.cl", "Kernel_arrayOfChars_256.cl",
 	"Kernel_arrayOfChars_512.cl","Kernel_arrayOfChars_1024.cl","Kernel_arrayOfChars_2048.cl","Kernel_arrayOfChars_4096.cl"};
@@ -51,12 +48,9 @@ int parseArgument(int argc, char *args[]){
 				//Fixed level
 				for (index = 0; index <numberOfBenchmarks; index++){					
 					//benchmarks[index].vendor = Vendor_Name[AMD];
-<<<<<<< HEAD
 					//benchmarks[index].vendor = Vendor_Name[Intel];
 					benchmarks[index].vendor = Vendor_Name[NVIDIA];
-=======
 					benchmarks[index].vendor = Vendor_Name[Intel];
->>>>>>> b1fdb5c5388df077496dd9e0f910653fe024f1d4
 					benchmarks[index].device_type = CL_DEVICE_TYPE_GPU;
 					benchmarks[index].repeats = MAXITERATION;
 					benchmarks[index].kernel_name = DS_Files[index];
@@ -81,12 +75,10 @@ int parseArgument(int argc, char *args[]){
 				for (index = 0; index <numberOfBenchmarks; index++){
 					arraysize = arraysizelist[index]; 
 					//benchmarks[index].vendor = Vendor_Name[AMD];
-<<<<<<< HEAD
 					//benchmarks[index].vendor = Vendor_Name[Intel];
 					benchmarks[index].vendor = Vendor_Name[NVIDIA];
-=======
 					benchmarks[index].vendor = Vendor_Name[Intel];
->>>>>>> b1fdb5c5388df077496dd9e0f910653fe024f1d4
+
 					benchmarks[index].device_type = CL_DEVICE_TYPE_GPU;
 					benchmarks[index].repeats = MAXITERATION;
 					benchmarks[index].kernel_name = ArraySize_Files[index];
@@ -101,7 +93,6 @@ int parseArgument(int argc, char *args[]){
 
 			} else if(strncmp(value, "workgroupsize", sizeof("workgroupsize")) == 0){
 				//Vary the workgroupsize for the kernel with the array-of-chars data structure.
-<<<<<<< HEAD
 				//For AMD, the workgroup size is 64, 128, 256.
 				//int wgslist[] = {64,128,256};
 				//For Intel, the workgroup size is 64, 128, 256, 512.
@@ -110,19 +101,12 @@ int parseArgument(int argc, char *args[]){
 				int wgslist[] = {64,128,256,512,1024};	
 				numberOfBenchmarks = 5;
 				limit = 1000*1000*1000;
-				arraysize = 256;
-=======
-				//The workgroup size is 64, 128, 256.
-				int wgslist[] = {64,128,256};				
-				numberOfBenchmarks = 3;
-				limit = 1000*1000*1000;
-				arraysize = 64;
->>>>>>> b1fdb5c5388df077496dd9e0f910653fe024f1d4
+				arraysize = 256;		
+
 				benchmarks = (Benchmark *)malloc(numberOfBenchmarks*sizeof(Benchmark));
 				for (index = 0; index <numberOfBenchmarks; index++){
 					workgroupsize = wgslist[index];
 					//benchmarks[index].vendor = Vendor_Name[AMD];
-<<<<<<< HEAD
 					//benchmarks[index].vendor = Vendor_Name[Intel];
 					benchmarks[index].vendor = Vendor_Name[NVIDIA];
 					benchmarks[index].device_type = CL_DEVICE_TYPE_GPU;
@@ -160,12 +144,10 @@ int parseArgument(int argc, char *args[]){
 					benchmarks[index].device_type = CL_DEVICE_TYPE_GPU;
 					benchmarks[index].repeats = MAXITERATION;
 					benchmarks[index].kernel_name = "Kernel_arrayOfChars_256.cl";
-=======
 					benchmarks[index].vendor = Vendor_Name[Intel];
 					benchmarks[index].device_type = CL_DEVICE_TYPE_GPU;
 					benchmarks[index].repeats = MAXITERATION;
 					benchmarks[index].kernel_name = "Kernel_arrayOfChars.cl";
->>>>>>> b1fdb5c5388df077496dd9e0f910653fe024f1d4
 					//Parameters					
 					params.limit = limit;
 					params.workgroupsize = workgroupsize;
