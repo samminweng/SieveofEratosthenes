@@ -25,6 +25,7 @@ __kernel void sieve(__global int *primes,
 	//Get the global thread ID                                 
 	gid = get_global_id(0);
 	lid = get_local_id(0);
+	subtotals[gid]=0;
 	if(gid < numberOfBlocks){
 		//Get the block size, block start, and block end.
 		block_start = (gid * block_size) + start_limit;		
@@ -49,8 +50,6 @@ __kernel void sieve(__global int *primes,
 		
 		//Count the primes within the range.
 		subtotal = (block_end - block_start) - bitCount(nonPrimes[lid]);
-		if(block_start == 0)
-			subtotal -= 2;		
 		subtotals[gid]=subtotal;
 	}
 	

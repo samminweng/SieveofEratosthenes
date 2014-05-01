@@ -5,9 +5,9 @@
 enum Vendor {AMD, Intel, NVIDIA};
 
 char* Vendor_Name[]={"Advanced Micro Devices, Inc.", "Intel(R) Corporation", "NVIDIA Corporation"}; 
-char* DS_Files[]={"Kernel_arrayOfchars.cl", "Kernel_sharedArrayOfChars.cl", "Kernel_SharedArrayOfULongs.cl", "Kernel_unsignedLong.cl"};
-char* ArraySize_Files[]={"Kernel_arrayOfChars_64.cl", "Kernel_arrayOfChars_128.cl", "Kernel_arrayOfChars_256.cl",
-	"Kernel_arrayOfChars_512.cl","Kernel_arrayOfChars_1024.cl","Kernel_arrayOfChars_2048.cl","Kernel_arrayOfChars_4096.cl"};
+char* DS_Files[]={"Kernel_char_array.cl", "Kernel_shared_char_array.cl", "Kernel_shared_ulong_array_V11.cl", "Kernel_ulong_V11.cl"};
+char* ArraySize_Files[]={"Kernel_char_array_64.cl", "Kernel_char_array_128.cl", "Kernel_char_array_256.cl",
+	"Kernel_char_array_512.cl","Kernel_char_array_1024.cl","Kernel_char_array_2048.cl","Kernel_char_array_4096.cl"};
 
 //The total number of primes associated with the range of upper limit.
 int results[] ={0, 4, 25, 168, 1229, 9592, 78498, 664579, 5761455, 50847534, 98222287};
@@ -50,7 +50,7 @@ int parseArgument(int argc, char *args[]){
 					//benchmarks[index].vendor = Vendor_Name[AMD];
 					//benchmarks[index].vendor = Vendor_Name[Intel];
 					benchmarks[index].vendor = Vendor_Name[NVIDIA];
-					benchmarks[index].vendor = Vendor_Name[Intel];
+
 					benchmarks[index].device_type = CL_DEVICE_TYPE_GPU;
 					benchmarks[index].repeats = MAXITERATION;
 					benchmarks[index].kernel_name = DS_Files[index];
@@ -67,7 +67,7 @@ int parseArgument(int argc, char *args[]){
 				//Vary the array size for the kernel with array of chars.
 				//The array size is 64, 128, ....1024, 2048 and 4096 
 				int arraysizelist[]= {64,128,256,512, 1024,2048,4096};
-				numberOfBenchmarks = 7;
+				numberOfBenchmarks = sizeof(arraysizelist)/sizeof(int);
 				limit = 1000*1000*1000;
 				workgroupsize = 64;
 				benchmarks = (Benchmark *)malloc(numberOfBenchmarks*sizeof(Benchmark));
@@ -76,8 +76,7 @@ int parseArgument(int argc, char *args[]){
 					arraysize = arraysizelist[index]; 
 					//benchmarks[index].vendor = Vendor_Name[AMD];
 					//benchmarks[index].vendor = Vendor_Name[Intel];
-					benchmarks[index].vendor = Vendor_Name[NVIDIA];
-					benchmarks[index].vendor = Vendor_Name[Intel];
+					benchmarks[index].vendor = Vendor_Name[NVIDIA];					
 
 					benchmarks[index].device_type = CL_DEVICE_TYPE_GPU;
 					benchmarks[index].repeats = MAXITERATION;
@@ -99,7 +98,7 @@ int parseArgument(int argc, char *args[]){
 				//int wgslist[] = {64,128,256,512};	
 				//For NVIDIA the workgroup size is 64, 128, 256, 512, 1024.
 				int wgslist[] = {64,128,256,512,1024};	
-				numberOfBenchmarks = 5;
+				numberOfBenchmarks = sizeof(wgslist)/sizeof(int);
 				limit = 1000*1000*1000;
 				arraysize = 256;		
 
@@ -111,7 +110,7 @@ int parseArgument(int argc, char *args[]){
 					benchmarks[index].vendor = Vendor_Name[NVIDIA];
 					benchmarks[index].device_type = CL_DEVICE_TYPE_GPU;
 					benchmarks[index].repeats = MAXITERATION;
-					benchmarks[index].kernel_name = "Kernel_arrayOfChars_256.cl";
+					benchmarks[index].kernel_name = "Kernel_char_array_256.cl";
 					//Parameters					
 					params.limit = limit;
 					params.workgroupsize = workgroupsize;
@@ -125,13 +124,13 @@ int parseArgument(int argc, char *args[]){
 				//Vary the limit for the kernel with the array-of-chars data structure.
 				//and the optimal arraysize and workgroupsize.
 				int limitList[] = {10,100,1000, 10*1000, 100*1000, 1000*1000, 10*1000*1000, 100*1000*1000, 1000*1000*1000};				
-				numberOfBenchmarks = 9;
+				numberOfBenchmarks = sizeof(limitList)/sizeof(int);
 				//The optimal setting for AMD
 				//workgroupsize = 256;
 				//arraysize = 1024;
 				//The optimal setting for Intel 
-				workgroupsize = 64;
-				arraysize = 256;
+				//workgroupsize = 64;
+				//arraysize = 256;
 				//The optimal setting for NVIDIA
 				workgroupsize = 64;
 				arraysize = 256;
@@ -143,11 +142,8 @@ int parseArgument(int argc, char *args[]){
 					benchmarks[index].vendor = Vendor_Name[NVIDIA];
 					benchmarks[index].device_type = CL_DEVICE_TYPE_GPU;
 					benchmarks[index].repeats = MAXITERATION;
-					benchmarks[index].kernel_name = "Kernel_arrayOfChars_256.cl";
-					benchmarks[index].vendor = Vendor_Name[Intel];
-					benchmarks[index].device_type = CL_DEVICE_TYPE_GPU;
-					benchmarks[index].repeats = MAXITERATION;
-					benchmarks[index].kernel_name = "Kernel_arrayOfChars.cl";
+					benchmarks[index].kernel_name = "Kernel_char_array_256.cl";
+				
 					//Parameters					
 					params.limit = limit;
 					params.workgroupsize = workgroupsize;

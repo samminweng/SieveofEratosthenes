@@ -55,7 +55,7 @@ int deﬁne_platform(cl_device_type device_type, char* vendor_name){
 				platform.vendor = vendor_name;
 				platform.num_devices = num_devices;
 				platform.device_id = device_id;
-				break;
+				return SUCCESS;
 			}
 
 		}

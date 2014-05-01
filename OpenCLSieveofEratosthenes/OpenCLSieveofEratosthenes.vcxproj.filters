@@ -34,40 +34,46 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Kernel_sharedArrayOfchars.cl">
-      <Filter>Source Files\datastructure</Filter>
-    </None>
-    <None Include="Kernel_sharedArrayOfulongs.cl">
-      <Filter>Source Files\datastructure</Filter>
-    </None>
-    <None Include="Kernel_unsignedLong.cl">
-      <Filter>Source Files\datastructure</Filter>
-    </None>
     <None Include="Kernel_arrayOfchars.cl">
       <Filter>Source Files\datastructure</Filter>
     </None>
-    <None Include="Kernel_arrayOfchars_128.cl">
-      <Filter>Source Files\arraysize</Filter>
-    </None>
-    <None Include="Kernel_arrayOfChars_256.cl">
-      <Filter>Source Files\arraysize</Filter>
-    </None>
-    <None Include="Kernel_arrayOfchars_512.cl">
-      <Filter>Source Files\arraysize</Filter>
-    </None>
-    <None Include="Kernel_arrayOfchars_1024.cl">
-      <Filter>Source Files\arraysize</Filter>
-    </None>
-    <None Include="Kernel_arrayOfchars_64.cl">
-      <Filter>Source Files\arraysize</Filter>
-    </None>
-    <None Include="Kernel_arrayOfchars.cl">
+    <None Include="Kernel_ulong.cl">
       <Filter>Source Files\datastructure</Filter>
     </None>
-    <None Include="Kernel_arrayOfChars_2048.cl">
+    <None Include="Kernel_shared_char_array.cl">
+      <Filter>Source Files\datastructure</Filter>
+    </None>
+    <None Include="Kernel_shared_ulong_array.cl">
+      <Filter>Source Files\datastructure</Filter>
+    </None>
+    <None Include="Kernel_shared_ulong_array_V11.cl">
+      <Filter>Source Files\datastructure</Filter>
+    </None>
+    <None Include="Kernel_ulong_V11.cl">
+      <Filter>Source Files\datastructure</Filter>
+    </None>
+    <None Include="Kernel_char_array.cl">
+      <Filter>Source Files\datastructure</Filter>
+    </None>
+    <None Include="Kernel_char_array_1024.cl">
       <Filter>Source Files\arraysize</Filter>
     </None>
-    <None Include="Kernel_arrayOfChars_4096.cl">
+    <None Include="Kernel_char_array_128.cl">
+      <Filter>Source Files\arraysize</Filter>
+    </None>
+    <None Include="Kernel_char_array_2048.cl">
+      <Filter>Source Files\arraysize</Filter>
+    </None>
+    <None Include="Kernel_char_array_256.cl">
+      <Filter>Source Files\arraysize</Filter>
+    </None>
+    <None Include="Kernel_char_array_4096.cl">
+      <Filter>Source Files\arraysize</Filter>
+    </None>
+    <None Include="Kernel_char_array_512.cl">
+      <Filter>Source Files\arraysize</Filter>
+    </None>
+    <None Include="Kernel_char_array_64.cl">
       <Filter>Source Files\arraysize</Filter>
     </None>
   </ItemGroup>

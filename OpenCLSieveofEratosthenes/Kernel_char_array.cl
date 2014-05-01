@@ -1,5 +1,5 @@
 //#pragma cl_nv_compiler_options
-#define ARRAYSIZE 64
+#define BLOCKSIZE 64
 /*Use the constant array to store the nonPrimes list.*/
 __kernel void sieve(__global int *primes,
 					int numberOfPrimes,
@@ -11,18 +11,18 @@ __kernel void sieve(__global int *primes,
 	int gid, lid, block_start, block_end;
 	int m, p, i, subtotal, offset;
 	//Declare a fixed-length array.
-	char nonPrimes[ARRAYSIZE];
+	char nonPrimes[BLOCKSIZE];
 	//Get the global thread ID                                 
 	gid  = get_global_id(0);
 	lid = get_local_id(0);
-	subtotals[gid]=0;
+	//subtotals[gid] = 0;	
 	if(gid < numberOfBlocks){
 		//Get the block size, block start, and block end.
 		block_start = (gid * block_size) + start_limit;		
 		block_end = min((gid+1)*block_size + start_limit, end_limit+1);
 		
 		//Initialize the nonPrimes array.
-		for(i=0;i<ARRAYSIZE;i++)
+		for(i=0;i<BLOCKSIZE;i++)
 			nonPrimes[i]=0;
 
 		//For each given prime number, mark its multiples in the sub-range.	
@@ -43,14 +43,11 @@ __kernel void sieve(__global int *primes,
 		}
 		subtotal=0;
 		//Count the primes within the range.	
-		for(i=block_start; i < block_end; i++){
-			//if ((i >= 2) && (nonPrimes[i-block_start] == 0))
-			if(nonPrimes[i-block_start] == 0){
+		for(i=block_start; i < block_end; i++)
+			//if ((i >= 2) && (nonPrimes[i-block_start] == 0
+			if (nonPrimes[i-block_start] == 0)
 				subtotal++;
-			}
-		}
+
 		subtotals[gid]=subtotal;
 	}
 }
-
-// TODO: Add OpenCL kernel code here.
