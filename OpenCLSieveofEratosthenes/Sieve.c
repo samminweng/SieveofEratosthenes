@@ -225,7 +225,7 @@ PrimeList Sieve_Sqrt_limit(int limit){
 * Find all of the primes upto the limit by using the OpenCL objects.
 * Check if the work requires the decomposition.
 If so, then split the work into the small tasks of 1000 million in size.*/
-int Sieve_OpenCL(int limit, int arraysize, int workgroupsize){
+int Sieve_OpenCL(int limit, int blocksize, int workgroupsize){
 
 	int n, i, total;
 	int numberOfBlocks, numberOfTasks;
@@ -260,9 +260,9 @@ int Sieve_OpenCL(int limit, int arraysize, int workgroupsize){
 	for(task_id=0;task_id<numberOfTasks;task_id++){
 		end = min(start + THRESHOLD, limit);
 		// Total number of blocks
-		numberOfBlocks = ceil((end- start)/(float)arraysize);
+		numberOfBlocks = ceil((end- start)/(float)blocksize);
 		// Calculate the global size of the task.
-		global_size = workgroupsize * ceil((end - start)/(float)(arraysize*workgroupsize));
+		global_size = workgroupsize * ceil((end - start)/(float)(blocksize*workgroupsize));
 
 		// Create the input and output in device memory.		
 		d_subtotals[task_id] = clCreateBuffer(context, CL_MEM_WRITE_ONLY, numberOfBlocks*sizeof(short int), NULL, err);
@@ -271,7 +271,7 @@ int Sieve_OpenCL(int limit, int arraysize, int workgroupsize){
 		err = clSetKernelArg(kernel, 0, sizeof(cl_mem), &d_primes);
 		err |= clSetKernelArg(kernel, 1, sizeof(int), &prime_length);
 		err |= clSetKernelArg(kernel, 2, sizeof(cl_mem), &d_subtotals[task_id]);
-		err |= clSetKernelArg(kernel, 3, sizeof(int), &arraysize);
+		err |= clSetKernelArg(kernel, 3, sizeof(int), &blocksize);
 		err |= clSetKernelArg(kernel, 4, sizeof(int), &numberOfBlocks);
 		err |= clSetKernelArg(kernel, 5, sizeof(int), &start);
 		err |= clSetKernelArg(kernel, 6, sizeof(int), &end);
@@ -351,8 +351,8 @@ void writeBenchmarksToCSV(Benchmark benchmark){
 	//Make a directory.
 	err = system("mkdir benchmark");	
 	
-	sprintf_s(str, MAXLENGTH, ".%s.Limit%d.WorkGroupSize%d.ArraySize%d.Global%d", benchmark.kernel_name, benchmark.parameters.limit,
-		benchmark.parameters.workgroupsize, benchmark.parameters.arraysize, platform.global_size);
+	sprintf_s(str, MAXLENGTH, ".%s.Limit%d.WorkGroupSize%d.BlockSize%d.Global%d", benchmark.kernel_name, benchmark.parameters.limit,
+		benchmark.parameters.workgroupsize, benchmark.parameters.blocksize, platform.global_size);
 	strcat_s(filename, MAXLENGTH, str);
 	strcat_s(filename, MAXLENGTH, ".csv");
 

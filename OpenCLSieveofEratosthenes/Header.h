@@ -25,7 +25,7 @@ typedef struct {
 	//levels
 	int limit;
 	int workgroupsize;
-	int arraysize;
+	int blocksize;
 	int result;
 	//Global Size
 	int global_size;

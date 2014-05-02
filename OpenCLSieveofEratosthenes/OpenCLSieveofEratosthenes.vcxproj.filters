@@ -19,6 +19,9 @@
     <Filter Include="Source Files\datastructure">
       <UniqueIdentifier>{d75bedc2-cf36-4be6-b262-031a1eb3ff88}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\workgroupsize">
+      <UniqueIdentifier>{1fd05693-8a00-49a1-8bcc-37855b10a3fe}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Header.h">
@@ -34,9 +37,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Kernel_arrayOfchars.cl">
-      <Filter>Source Files\datastructure</Filter>
-    </None>
     <None Include="Kernel_ulong.cl">
       <Filter>Source Files\datastructure</Filter>
     </None>
@@ -75,6 +75,21 @@
     </None>
     <None Include="Kernel_char_array_64.cl">
       <Filter>Source Files\arraysize</Filter>
+    </None>
+    <None Include="Kernel_shared_ulong_array_1024.cl">
+      <Filter>Source Files\workgroupsize</Filter>
+    </None>
+    <None Include="Kernel_shared_ulong_array_64.cl">
+      <Filter>Source Files\workgroupsize</Filter>
+    </None>
+    <None Include="Kernel_shared_ulong_array_128.cl">
+      <Filter>Source Files\workgroupsize</Filter>
+    </None>
+    <None Include="Kernel_shared_ulong_array_256.cl">
+      <Filter>Source Files\workgroupsize</Filter>
+    </None>
+    <None Include="Kernel_shared_ulong_array_512.cl">
+      <Filter>Source Files\workgroupsize</Filter>
     </None>
   </ItemGroup>
 </Project>

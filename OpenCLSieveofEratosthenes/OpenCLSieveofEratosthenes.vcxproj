@@ -87,6 +87,11 @@
     <None Include="Kernel_char_array_4096.cl" />
     <None Include="Kernel_char_array_512.cl" />
     <None Include="Kernel_shared_ulong_array.cl" />
+    <None Include="Kernel_shared_ulong_array_1024.cl" />
+    <None Include="Kernel_shared_ulong_array_128.cl" />
+    <None Include="Kernel_shared_ulong_array_256.cl" />
+    <None Include="Kernel_shared_ulong_array_512.cl" />
+    <None Include="Kernel_shared_ulong_array_64.cl" />
     <None Include="Kernel_shared_ulong_array_V11.cl" />
     <None Include="Kernel_ulong_V11.cl" />
     <None Include="Kernel_ulong.cl">
