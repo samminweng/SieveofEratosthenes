@@ -1,0 +1,77 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
+    </Filter>
+    <Filter Include="Source Files\datastructure">
+      <UniqueIdentifier>{1934be1d-a6b5-4dba-b7c7-c8705c294137}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\arraysize">
+      <UniqueIdentifier>{04ae4121-f20d-4251-829c-4969ed1547a6}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Main.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Sieve.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Header.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <none Include="Kernel_char_array_1024.cl">
+      <Filter>Source Files\arraysize</Filter>
+    </none>
+    <none Include="Kernel_char_array_4096.cl">
+      <Filter>Source Files\arraysize</Filter>
+    </none>
+    <none Include="Kernel_char_array_2048.cl">
+      <Filter>Source Files\arraysize</Filter>
+    </none>
+    <none Include="Kernel_shared_ulong_array_V11.cl">
+      <Filter>Source Files\datastructure</Filter>
+    </none>
+    <none Include="Kernel_shared_char_array.cl">
+      <Filter>Source Files\datastructure</Filter>
+    </none>
+    <none Include="Kernel_char_array.cl">
+      <Filter>Source Files\datastructure</Filter>
+    </none>
+    <none Include="Kernel_char_array_512.cl">
+      <Filter>Source Files\arraysize</Filter>
+    </none>
+    <none Include="Kernel_char_array_256.cl">
+      <Filter>Source Files\arraysize</Filter>
+    </none>
+    <none Include="Kernel_char_array_128.cl">
+      <Filter>Source Files\arraysize</Filter>
+    </none>
+    <none Include="Kernel_char_array_64.cl">
+      <Filter>Source Files\arraysize</Filter>
+    </none>
+    <none Include="Kernel_ulong_V11.cl">
+      <Filter>Source Files\datastructure</Filter>
+    </none>
+    <None Include="Kernel_ulong.cl">
+      <Filter>Source Files\datastructure</Filter>
+    </None>
+    <None Include="Kernel_shared_ulong_array.cl">
+      <Filter>Source Files\datastructure</Filter>
+    </None>
+  </ItemGroup>
+</Project>

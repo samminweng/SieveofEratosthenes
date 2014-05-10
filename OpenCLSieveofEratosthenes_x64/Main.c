@@ -1,5 +1,5 @@
 ﻿#include "Header.h"
-#define MAXITERATION 30
+#define MAXITERATION 1
 #define VARNAME TEXT("CUDA_CACHE_DISABLE")//Set the environment variable.
 
 enum Vendor {AMD, Intel, NVIDIA};
@@ -16,7 +16,8 @@ int results[] ={0, 4, 25, 168, 1229, 9592, 78498, 664579, 5761455, 50847534, 982
 
 int deﬁne_platform(cl_device_type device_type, char* vendor_name);
 int Load_program(char* filename);
-int Sieve_OpenCL(int limit, int blocksize, int workgroupsize);
+//int Sieve_OpenCL(int limit, int blocksize, int workgroupsize);
+int Sieve_OpenCL(int limit, int blocksize, size_t workgroupsize);
 int free_OpenCL();
 void writeBenchmarksToCSV(Benchmark benchmark);
 
@@ -42,7 +43,8 @@ int parseArgument(int argc, char *args[]){
 		if(strncmp(flag, "-b", sizeof("-b"))==0){			
 			if(strncmp(value, "datastructure", sizeof("datastructure")) == 0){
 				//Benchmark the 4 kinds of data structures.				
-				numberOfBenchmarks = 4;
+				//numberOfBenchmarks = 4;
+				numberOfBenchmarks =1;
 				limit = 1000*1000*1000;
 				blocksize = 64;
 				workgroupsize = 64;
@@ -54,6 +56,7 @@ int parseArgument(int argc, char *args[]){
 					benchmarks[index].vendor = Vendor_Name[NVIDIA];
 
 					benchmarks[index].device_type = CL_DEVICE_TYPE_GPU;
+					//benchmarks[index].device_type = CL_DEVICE_TYPE_CPU;
 					benchmarks[index].repeats = MAXITERATION;
 					benchmarks[index].kernel_name = DS_Files[index];
 					//Parameters
@@ -70,15 +73,15 @@ int parseArgument(int argc, char *args[]){
 				//The block size is 64, 128, ....1024, 2048 and 4096 
 				int blocksizelist[]= {64,128,256,512, 1024,2048,4096};
 				numberOfBenchmarks = sizeof(blocksizelist)/sizeof(int);
-				limit = 1000*1000*1000;
+				limit = 100*1000*1000;
 				workgroupsize = 64;
 				benchmarks = (Benchmark *)malloc(numberOfBenchmarks*sizeof(Benchmark));
 				//Fixed level
 				for (index = 0; index <numberOfBenchmarks; index++){
 					blocksize = blocksizelist[index]; 
 					//benchmarks[index].vendor = Vendor_Name[AMD];
-					benchmarks[index].vendor = Vendor_Name[Intel];
-					//benchmarks[index].vendor = Vendor_Name[NVIDIA];					
+					//benchmarks[index].vendor = Vendor_Name[Intel];
+					benchmarks[index].vendor = Vendor_Name[NVIDIA];					
 
 					benchmarks[index].device_type = CL_DEVICE_TYPE_GPU;
 					benchmarks[index].repeats = MAXITERATION;
@@ -97,11 +100,11 @@ int parseArgument(int argc, char *args[]){
 				//For AMD, the workgroup size is 64, 128, 256.
 				//int wgslist[] = {64,128,256};
 				//For Intel, the workgroup size is 64, 128, 256, 512.
-				int wgslist[] = {64,128,256,512};	
+				//int wgslist[] = {64,128,256,512};	
 				//For NVIDIA the workgroup size is 64, 128, 256, 512, 1024.
-				//int wgslist[] = {64,128,256,512,1024};	
-				//numberOfBenchmarks = sizeof(wgslist)/sizeof(int);
-				limit = 1000*1000*1000;
+				int wgslist[] = {64,128,256,512,1024};	
+				numberOfBenchmarks = sizeof(wgslist)/sizeof(int);
+				limit = 100*1000*1000;
 				blocksize = 64;		
 
 				benchmarks = (Benchmark *)malloc(numberOfBenchmarks*sizeof(Benchmark));
@@ -112,8 +115,8 @@ int parseArgument(int argc, char *args[]){
 					benchmarks[index].vendor = Vendor_Name[NVIDIA];
 					benchmarks[index].device_type = CL_DEVICE_TYPE_GPU;
 					benchmarks[index].repeats = MAXITERATION;
-					benchmarks[index].kernel_name = WorkGroupSize_Files[index];
-
+					//benchmarks[index].kernel_name = WorkGroupSize_Files[index];
+					benchmarks[index].kernel_name = "Kernel_char_array_256.cl";
 					//Parameters					
 					params.limit = limit;
 					params.workgroupsize = workgroupsize;
@@ -174,7 +177,8 @@ int parseArgument(int argc, char *args[]){
 
 //Defines the entry point for the console application.
 int main(int argc, char *args[]){		
-	int numberOfprimes, iter, index, limit, blocksize, workgroupsize, result, numberOfBenchmarks, repeats;	
+	int numberOfprimes, iter, index, limit, blocksize, result, numberOfBenchmarks, repeats;
+	size_t workgroupsize;
 	clock_t start, end;
 	double diff;
 	Benchmark benchmark; Parameters param;
