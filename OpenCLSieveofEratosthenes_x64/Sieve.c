@@ -249,8 +249,8 @@ int Sieve_OpenCL(int limit, int blocksize, size_t workgroupsize){
 	primes = primelist.primes;
 
 	// Create a command queue to feed the device.
-	//queue = clCreateCommandQueue(context, device_id, CL_QUEUE_PROFILING_ENABLE, &err);
-	queue = clCreateCommandQueue(context, device_id, NULL, &err);
+	queue = clCreateCommandQueue(context, device_id, CL_QUEUE_PROFILING_ENABLE, &err);
+	//queue = clCreateCommandQueue(context, device_id, NULL, &err);
 	//Create the input prime list.
 	d_primes = clCreateBuffer(context, CL_MEM_READ_ONLY, n*sizeof(int), NULL, err);
 	clEnqueueWriteBuffer(queue, d_primes, CL_TRUE, 0, n*sizeof(int), primes, 0, NULL, NULL);

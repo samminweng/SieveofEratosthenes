@@ -45,15 +45,15 @@ int parseArgument(int argc, char *args[]){
 				//Benchmark the 4 kinds of data structures.				
 				//numberOfBenchmarks = 4;
 				numberOfBenchmarks =1;
-				limit = 1000*1000*1000;
+				limit = 100*1000*1000;
 				blocksize = 64;
 				workgroupsize = 64;
 				benchmarks = (Benchmark *)malloc(numberOfBenchmarks*sizeof(Benchmark));
 				//Fixed level
 				for (index = 0; index <numberOfBenchmarks; index++){					
 					//benchmarks[index].vendor = Vendor_Name[AMD];
-					//benchmarks[index].vendor = Vendor_Name[Intel];
-					benchmarks[index].vendor = Vendor_Name[NVIDIA];
+					benchmarks[index].vendor = Vendor_Name[Intel];
+					//benchmarks[index].vendor = Vendor_Name[NVIDIA];
 
 					benchmarks[index].device_type = CL_DEVICE_TYPE_GPU;
 					//benchmarks[index].device_type = CL_DEVICE_TYPE_CPU;

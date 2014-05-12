@@ -2,7 +2,7 @@
 <root>
  <connectionOption>localhost</connectionOption>
  <rdmgr>
-  <timestamp type="u64_t">1399704165</timestamp>
+  <timestamp type="u64_t">1399716436</timestamp>
   <hostname>sam-lenovo</hostname>
   <os>windows</os>
   <product>Intel® VTune™ Amplifier XE 2013 Update 16</product>
@@ -11,10 +11,8 @@
   <CPUFrequency type="s64_t">2400000000</CPUFrequency>
  </rdmgr>
  <All_Configurations-All_Platforms>
-  <analysis_type_settings>
-   <selected_analysis_type_path>C:\Program Files (x86)\Intel\VTune Amplifier XE 2013\config\analysis_type\basic_hotspots.cfg</selected_analysis_type_path>
-  </analysis_type_settings>
   <target_settings>
+   <inherited_state type="bool">false</inherited_state>
    <result_dir>
     <localhost>E:\GitHub\SieveofEratosthenes\OpenCLSieveofEratosthenes_x64\My Amplifier XE Results - OpenCLSieveofEratosthenes_x64</localhost>
    </result_dir>
@@ -98,12 +96,16 @@
      <launch type="pointer" type_id="dasID_cctrl2::ApplicationWorkload" ptr_type="dasID_cctrl2::IWorkload">
       <workload>
        <targetName>launch</targetName>
-       <use_app_dir_as_work_dir type="bool">true</use_app_dir_as_work_dir>
-       <launch_app.inherit_sys_environment type="bool">true</launch_app.inherit_sys_environment>
+       <use_app_dir_as_work_dir type="bool">false</use_app_dir_as_work_dir>
+       <launch.userappworkdir>E:\GitHub\SieveofEratosthenes\OpenCLSieveofEratosthenes_x64</launch.userappworkdir>
        <launch_app.app_to_launch>E:\GitHub\SieveofEratosthenes\x64\Debug\OpenCLSieveofEratosthenes_x64.exe</launch_app.app_to_launch>
+       <launch_app.working_folder>E:\GitHub\SieveofEratosthenes\OpenCLSieveofEratosthenes_x64</launch_app.working_folder>
        <launch_app.app_parameters>-b=datastructure</launch_app.app_parameters>
+       <launch_app.inherit_sys_environment type="bool">true</launch_app.inherit_sys_environment>
        <result_directory.path>E:\GitHub\SieveofEratosthenes\OpenCLSieveofEratosthenes_x64\My Amplifier XE Results - OpenCLSieveofEratosthenes_x64\r@@@{at}</result_directory.path>
-       <launch_app.working_folder>E:\GitHub\SieveofEratosthenes\x64\Debug</launch_app.working_folder>
+       <launch_app.environment>ENABLE_JITPROFILING=1
+CL_CONFIG_USE_VTUNE=True
+</launch_app.environment>
        <search_directories>
         <item>
          <value>sym=E:\GitHub\SieveofEratosthenes\x64\Debug</value>
@@ -244,16 +246,21 @@
     <category type="u8_t">4</category>
    </searchCategory>
   </searchDirs>
+  <analysis_type_settings>
+   <selected_analysis_type_path>C:\Program Files (x86)\Intel\VTune Amplifier XE 2013\config\analysis_type\advanced_hotspots.cfg</selected_analysis_type_path>
+  </analysis_type_settings>
  </All_Configurations-All_Platforms>
  <engine>
   <knobs>
-   <frameThreshold>&lt;bag xmlns:double=&quot;http://www.w3.org/2001/XMLSchema#double&quot;&gt;
-          &lt;minValueThresholds&gt;
-            &lt;double:minValueThreshold name=&quot;%SlowFrame&quot;&gt;0.0&lt;/double:minValueThreshold&gt;
-            &lt;minValueThreshold name=&quot;%GoodFrame&quot;&gt;$slowGoodFrameThreshold&lt;/minValueThreshold&gt;
-            &lt;minValueThreshold name=&quot;%FastFrame&quot;&gt;$goodFastFrameThreshold&lt;/minValueThreshold&gt;
-          &lt;/minValueThresholds&gt;
-        &lt;/bag&gt;</frameThreshold>
+   <frameThreshold>
+&lt;bag xmlns:double=&quot;http://www.intel.com/2001/XMLSchema#double&quot;&gt;
+ &lt;minValueThresholds domain=&quot;&quot;&gt;
+  &lt;double:minValueThreshold name=&quot;%SlowFrame&quot;&gt;0&lt;/double:minValueThreshold&gt;
+  &lt;double:minValueThreshold name=&quot;%GoodFrame&quot;&gt;40&lt;/double:minValueThreshold&gt;
+  &lt;double:minValueThreshold name=&quot;%FastFrame&quot;&gt;100&lt;/double:minValueThreshold&gt;
+ &lt;/minValueThresholds&gt;
+&lt;/bag&gt;
+</frameThreshold>
    <utilizationThreshold>&lt;bag xmlns:double=&quot;http://www.w3.org/2001/XMLSchema#double&quot;
                   xmlns:boolean=&quot;http://www.w3.org/2001/XMLSchema#boolean&quot;&gt;
           &lt;minValueThresholds boolean:scaled=&quot;true&quot;&gt;

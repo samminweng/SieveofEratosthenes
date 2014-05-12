@@ -1,0 +1,22 @@
+-r
+E:\GitHub\SieveofEratosthenes\OpenCLSieveofEratosthenes_x64\My Amplifier XE Results - OpenCLSieveofEratosthenes_x64\r000ah
+--target=host
+--itt-config=frame
+--data-limit-mb=500
+--event-config=CPU_CLK_UNHALTED.THREAD:sa=2400000,CPU_CLK_UNHALTED.REF_TSC:sa=2400000,INST_RETIRED.ANY:sa=2400000
+--sample-after-multiplier=1.0
+--event-mux
+--mrte-mode=auto
+--itt-config=task,event
+--gpu-config=preset1:timer=1000us
+--etw-config=dma,frames
+--type=opencl
+--search-dir
+sym=E:\GitHub\SieveofEratosthenes\x64\Debug
+--search-dir
+sym=E:\GitHub\SieveofEratosthenes
+--search-dir
+sym=E:\GitHub\SieveofEratosthenes\Debug
+--
+E:\GitHub\SieveofEratosthenes\x64\Debug\OpenCLSieveofEratosthenes_x64.exe
+-b=datastructure
